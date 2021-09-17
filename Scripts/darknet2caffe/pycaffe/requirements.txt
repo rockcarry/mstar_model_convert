@@ -1,0 +1,5 @@
+numpy
+torch
+future
+scikit-image
+protobuf==3.3.0

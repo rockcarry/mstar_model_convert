@@ -47,8 +47,7 @@ python3 $SGS_IPU_DIR/Scripts/ConvertTool/ConvertTool.py caffe \
 input_config.ini 配置文件如下：
 [INPUT_CONFIG]
 inputs          = data;
-training_input_formats = RGB;
-input_formats   = BGR;
+input_formats   = RGB;
 quantizations   = TRUE;
 mean_red        = 0;
 mean_green      = 0;
@@ -95,7 +94,7 @@ python3 $SGS_IPU_DIR/Scripts/calibrator/calibrator.py \
 使用 compiler.py 工具，可以将 sgs fixed 模型转换为 sgs offline 模型，可用于在 IPU 上部署运行
 （需要 ubuntu 18.04 + python3 的环境，建议使用我们的 docker 镜像）
 
-python3 $SGS_IPU_DIR/Scripts/calibrator/compiler.py \ 
+python3 $SGS_IPU_DIR/Scripts/calibrator/compiler.py \
 -m $PWD/yolo-fastest-1.1-xl-fixed.sim   \
 -o $PWD/yolo-fastest-1.1-xl-offline.sim \
 -c Unknown

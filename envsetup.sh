@@ -12,6 +12,7 @@ if [ ! -d "${SGS_IPU_DIR}/libs/x86_64" ]; then
     echo "error! please enter the SGS Release Dir !"
 else
     export SGS_IPU_DIR
+    export PATH=$PATH:$SGS_IPU_DIR/postpc
     export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${SGS_IPU_DIR}/libs/x86_32:${SGS_IPU_DIR}/libs/x86_64
     export PYTHONPATH=${PYTHONPATH}:${SGS_IPU_DIR}/Scripts:${SGS_IPU_DIR}/Scripts/darknet2caffe/pycaffe
 fi

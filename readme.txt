@@ -79,7 +79,7 @@ python3 $SGS_IPU_DIR/Scripts/calibrator/calibrator.py \
 -m $PWD/yolo-fastest-1.1-xl-float.sim \
 -o $PWD/yolo-fastest-1.1-xl-fixed.sim \
 -c Unknown \
--n caffe_yolo_v3_tiny \
+-n caffe_yolo_fastest \
 --quant_level L5 \
 --input_config $PWD/input_config.ini
 
@@ -111,7 +111,19 @@ python3 $SGS_IPU_DIR/Scripts/calibrator/simulator.py \
 -m $PWD/yolo-fastest-1.1-xl-offline.sim \
 -c Unknown \
 -t Offline \
--n caffe_yolo_v3_tiny
+-n caffe_yolo_fastest
+
+
++--------------------------------+
+ apical/aicnn-dev docker 使用说明
++--------------------------------+
+
+docker run -it --rm -u $(id -u):$(id -g) \
+-v /home:/home \
+-v /etc/passwd:/etc/passwd:ro \
+-v /etc/group:/etc/group:ro   \
+-v /etc/shadow:/etc/shadow:ro \
+apical/aicnn-dev:v1.0.0 bash
 
 
 

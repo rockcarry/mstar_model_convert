@@ -33,6 +33,7 @@ yolo-fastest-1.1-xl.prototxt yolo-fastest-1.1-xl.caffemodel
 +------------------+
  caffe 转 sgs float
 +------------------+
+
 使用 ConvertTool.py 工具，可以将 caffe 模型转换为 sgs 的 float 模型
 （需要 ubuntu 18.04 + python3 的环境，建议使用我们的 docker 镜像）
 
@@ -71,6 +72,7 @@ input_format    = ALL_INT16;
 +-------------------+
  sgs float 转 fixed
 +-------------------+
+
 使用 calibrator.py 工具，可以将 sgs float 模型转换为 sgs 的 fixed 模型
 （需要 ubuntu 18.04 + python3 的环境，建议使用我们的 docker 镜像）
 
@@ -91,6 +93,7 @@ python3 $SGS_IPU_DIR/Scripts/calibrator/calibrator.py \
 +---------------------+
  sgs fixed 转 offline
 +---------------------+
+
 使用 compiler.py 工具，可以将 sgs fixed 模型转换为 sgs offline 模型，可用于在 IPU 上部署运行
 （需要 ubuntu 18.04 + python3 的环境，建议使用我们的 docker 镜像）
 
@@ -103,6 +106,7 @@ python3 $SGS_IPU_DIR/Scripts/calibrator/compiler.py \
 +--------+
  模拟验证
 +--------+
+
 使用 simulator.py 对模型进行模拟验证
 （需要 ubuntu 18.04 + python3 的环境，建议使用我们的 docker 镜像）
 
@@ -112,6 +116,19 @@ python3 $SGS_IPU_DIR/Scripts/calibrator/simulator.py \
 -c Unknown \
 -t Offline \
 -n caffe_yolo_fastest
+
+
++------------------+
+ postpc 后处理程序
++------------------+
+
+postpc 是一个 c 语言编写的模型输出后处理程序，目前可以对 yolov3 yolo-fastest 模型进行目标矩形框的计算。
+
+使用方法：
+postpc log/output/unknown_yolo-fastest-1.1-xl-fixed.sim_test.bmp.txt 640 424
+
+其中 unknown_yolo-fastest-1.1-xl-fixed.sim_test.bmp.txt 文件是使用 simulator.py 仿真运行后得到的模型输出文件，里面保存了NHWC 格式的 tensor 数据。
+640 和 424 指定了 test.jpg 的图像宽度和高度，计算 BBOX 的时候需要这两个参数。
 
 
 +--------------------------------+

@@ -1,0 +1,6 @@
+!.gitignore
+/log/
+*.sim
+*.caffemodel
+*.prototxt
+

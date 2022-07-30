@@ -4,13 +4,14 @@
 #include <string.h>
 #include <math.h>
 
-#define MODEL_INPUT_WIDTH   320
-#define MODEL_INPUT_HEIGHT  320
+#define MODEL_INPUT_WIDTH   640
+#define MODEL_INPUT_HEIGHT  384
 #define MODEL_CLASS_NUMBER  80
 #define MODEL_OUTPUT_NUM    2
 #define MAX_BBOX_NUM        200
-#define SCORE_THRESH        0.5
-#define NMSIOU_THRESH       0.5
+#define SCORE_THRESH        0.6
+#define NMSIOU_THRESH       0.3
+#define CLIP(x, y) ((x) < 0 ? 0 : ((x) > (y) ? (y) : (x)))
 
 typedef struct {
     int   type;
@@ -27,7 +28,7 @@ static int load_output_data(char *file, int idx, float **data, int *h, int *w, i
     FILE *fp   = NULL;
     char *fbuf = NULL;
     char *pstart, *pcur;
-    int   fsize, ok = 0, tmp, i;
+    int   dim = 0, fsize, ok = 0, tmp, i;
 
     *data = NULL; // set data to NULL
 
@@ -49,22 +50,32 @@ static int load_output_data(char *file, int idx, float **data, int *h, int *w, i
 
     pstart = fbuf;
     for (i=0; i<=idx; i++) {
-        pcur = strstr(pstart, "lignment shape:[");
-        if (!pcur) pcur = strstr(pstart, "Original shape:[");
-        if (!pcur) {
-            printf("failed to read data %d !\n", idx);
-            goto done;
-        }
-        pstart = pcur + strlen("Original shape:[");
+        pcur   = strstr(pstart, "tensor dim:");
+        pstart = pcur + strlen("tensor dim:");
     }
-    
-    pcur += strlen("Original shape:[");
-    sscanf(pcur, "%d %d %d %d", &tmp, h, w, c);
-    if (*h <= 0 || *w <= 0 || *c <= 0) {
-        printf("invalid h/w/c value ! h: %d, w: %d, c: %d\n", *h, *w, *c);
-        goto done;
+
+    sscanf(pstart, "%d", &dim);
+    pcur  = strstr(pstart, "Alignment shape:[");
+    pcur += strlen("Alignment shape:[");
+    if (dim == 3) {
+        sscanf(pcur, "%d %d %d", h, w, c);
+        if (*h <= 0 || *w <= 0 || *c <= 0) {
+            printf("invalid h/w/c value ! h: %d, w: %d, c: %d\n", *h, *w, *c);
+            goto done;
+        } else {
+            printf("output sensor idx: %d, h: %d, w: %d, c: %d\n", idx, *h, *w, *c);
+        }
+    } else if (dim == 4) {
+        sscanf(pcur, "%d %d %d %d", &tmp, h, w, c);
+        if (*h <= 0 || *w <= 0 || *c <= 0) {
+            printf("invalid h/w/c value ! h: %d, w: %d, c: %d\n", *h, *w, *c);
+            goto done;
+        } else {
+            printf("output sensor idx: %d, h: %d, w: %d, c: %d\n", idx, *h, *w, *c);
+        }
     } else {
-        printf("output sensor idx: %d, h: %d, w: %d, c: %d\n", idx, *h, *w, *c);
+        printf("invalid dim value %d !\n", dim);
+        goto done;
     }
 
     *data = (float*)malloc(*h * *w * *c * sizeof(float));
@@ -178,32 +189,138 @@ static int nms(BBOX *bboxlist, int n, float threshold, int min, int picw, int pi
     return j;
 }
 
+static float* ufface_init_priors(int inputw, int inputh, int *num_priors)
+{
+    float STRIDES[] = { 8.0f, 16.0f, 32.0f, 64.0f };
+    float SHRINKAGES[][4] = {
+        { STRIDES[0], STRIDES[1], STRIDES[2], STRIDES[3] },
+        { STRIDES[0], STRIDES[1], STRIDES[2], STRIDES[3] },
+    };
+    float MINBOXES[][3] = {
+        { 10.0f ,  16.0f , 24.0f  },
+        { 32.0f ,  48.0f , 0      },
+        { 64.0f ,  96.0f , 0      },
+        { 128.0f,  192.0f, 256.0f },
+    };
+    float featuremap_size[2][4] = {
+        { (float)ceil(inputw / STRIDES[0]), (float)ceil(inputw / STRIDES[1]), (float)ceil(inputw / STRIDES[2]), (float)ceil(inputw / STRIDES[3]) },
+        { (float)ceil(inputh / STRIDES[0]), (float)ceil(inputh / STRIDES[1]), (float)ceil(inputh / STRIDES[2]), (float)ceil(inputh / STRIDES[3]) },
+    };
+
+    int    i, j, k, n, m;
+    float *priors;
+    for (n=0,m=0; n<4; n++)
+        for (j=0; j<featuremap_size[1][n]; j++)
+            for (i=0; i<featuremap_size[0][n]; i++)
+                for (k = 0; k < 3 && MINBOXES[n][k] != 0; k++, m++);
+    if (num_priors) *num_priors = m;
+    priors = malloc(m * 4 * sizeof(float));
+    if (!priors) return NULL;
+
+    for (n=0,m=0; n<4; n++) {
+        float scalew = inputw / SHRINKAGES[0][n];
+        float scaleh = inputh / SHRINKAGES[1][n];
+        for (j=0; j<featuremap_size[1][n]; j++) {
+            for (i=0; i<featuremap_size[0][n]; i++) {
+                float x_center = (i + 0.5) / scalew;
+                float y_center = (j + 0.5) / scaleh;
+                for (k = 0; k < 3 && MINBOXES[n][k] != 0; k++, m++) {
+                    float w = MINBOXES[n][k] / inputw;
+                    float h = MINBOXES[n][k] / inputh;
+                    priors[m * 4 + 0] = CLIP(x_center, 1);
+                    priors[m * 4 + 1] = CLIP(y_center, 1);
+                    priors[m * 4 + 2] = CLIP(w       , 1);
+                    priors[m * 4 + 3] = CLIP(h       , 1);
+                }
+            }
+        }
+    }
+    return priors;
+}
+
+static int ufface_postprocess_proc(int inputw, int inputh, float *priors_list, int priors_num, float *tensor_scores, float *tensor_boxes, BBOX *bboxlist, int bboxmaxnum)
+{
+    int  i, n;
+    for (i=0,n=0; i<priors_num; i++) {
+        if (tensor_scores[i * 8 + 1] > SCORE_THRESH) {
+            static const float CENTER_VARIANCE = 0.1;
+            static const float SIZE_VARIANCE   = 0.2;
+            float x_center = tensor_boxes[i * 8 + 0] * CENTER_VARIANCE * priors_list[i * 4 + 2] + priors_list[i * 4 + 0];
+            float y_center = tensor_boxes[i * 8 + 1] * CENTER_VARIANCE * priors_list[i * 4 + 3] + priors_list[i * 4 + 1];
+            float w = exp(tensor_boxes[i * 8 + 2] * SIZE_VARIANCE) * priors_list[i * 4 + 2];
+            float h = exp(tensor_boxes[i * 8 + 3] * SIZE_VARIANCE) * priors_list[i * 4 + 3];
+            if (n < bboxmaxnum) {
+                bboxlist[n].type  = 0;
+                bboxlist[n].score = tensor_scores[i * 8 + 1];
+                bboxlist[n].x1    = CLIP(x_center - w / 2.0, 1) * inputw;
+                bboxlist[n].y1    = CLIP(y_center - h / 2.0, 1) * inputh;
+                bboxlist[n].x2    = CLIP(x_center + w / 2.0, 1) * inputw;
+                bboxlist[n].y2    = CLIP(y_center + h / 2.0, 1) * inputh;
+                n++;
+            }
+        }
+    }
+    return n;
+}
+
 int main(int argc, char *argv[])
 {
-    char *sgs_model_out = "out.txt";
-    int   picture_width = MODEL_INPUT_WIDTH ;
-    int   picture_height= MODEL_INPUT_HEIGHT;
-    BBOX  bbox_list[MAX_BBOX_NUM];
-    int   bbox_cursize = 0, i;
-    
+    char  *model_type    = "yolo-fastest";
+    char  *sgs_model_out = "out.txt";
+    int    picture_width = MODEL_INPUT_WIDTH ;
+    int    picture_height= MODEL_INPUT_HEIGHT;
+    BBOX   bbox_list[MAX_BBOX_NUM];
+    int    bbox_cursize = 0, i;
+    float *ufface_priors_list = NULL;
+    int    ufface_priors_num  = 0;
+
     if (argc > 1) sgs_model_out = argv[1];
     if (argc > 2) picture_width = atoi(argv[2]);
     if (argc > 3) picture_height= atoi(argv[3]);
+    if (argc > 4) model_type    = argv[4];
     printf("sgs_model_out : %s\n", sgs_model_out );
     printf("picture_width : %d\n", picture_width );
     printf("picture_height: %d\n", picture_height);
-    
-    for (i=0; i<MODEL_OUTPUT_NUM; i++) {
-        float *data = NULL; int h = 0, w = 0, c = 0;
-        if (0 != load_output_data(sgs_model_out, i, &data, &h, &w, &c)) break;
-        bbox_cursize = yolov3(data, h, w, c, MODEL_CLASS_NUMBER, SCORE_THRESH, s_anchor_list[i], bbox_list, bbox_cursize, MAX_BBOX_NUM);
-        free_output_data(data);
-    }
+    printf("model_type    : %s\n", model_type    );
 
-    bbox_cursize = nms(bbox_list, bbox_cursize, NMSIOU_THRESH, 1, picture_width, picture_height);
-    for (i=0; i<bbox_cursize; i++) {
-        printf("score: %.2f, category: %2d, rect: (%3d %3d %3d %3d)\n", bbox_list[i].score, bbox_list[i].type,
-            (int)bbox_list[i].x1, (int)bbox_list[i].y1, (int)bbox_list[i].x2, (int)bbox_list[i].y2);
+    if (strcmp(model_type, "yolo-fastest") == 0) {
+        for (i=0; i<MODEL_OUTPUT_NUM; i++) {
+            float *data = NULL; int h = 0, w = 0, c = 0;
+            if (0 != load_output_data(sgs_model_out, i, &data, &h, &w, &c)) break;
+            bbox_cursize = yolov3(data, h, w, c, MODEL_CLASS_NUMBER, SCORE_THRESH, s_anchor_list[i], bbox_list, bbox_cursize, MAX_BBOX_NUM);
+            free_output_data(data);
+        }
+
+        bbox_cursize = nms(bbox_list, bbox_cursize, NMSIOU_THRESH, 1, picture_width, picture_height);
+        for (i=0; i<bbox_cursize; i++) {
+            printf("score: %.2f, category: %2d, rect: (%3d %3d %3d %3d)\n", bbox_list[i].score, bbox_list[i].type,
+                (int)bbox_list[i].x1, (int)bbox_list[i].y1, (int)bbox_list[i].x2, (int)bbox_list[i].y2);
+        }
+    } else if (strcmp(model_type, "ultra-facedet") == 0) {
+        float *data[MODEL_OUTPUT_NUM] = { NULL };
+        ufface_priors_list = ufface_init_priors(MODEL_INPUT_WIDTH, MODEL_INPUT_HEIGHT, &ufface_priors_num);
+        if (!ufface_priors_list) {
+            printf("failed to init ultra-facedet priors !\n");
+            return -1;
+        }
+
+        for (i=0; i<MODEL_OUTPUT_NUM; i++) {
+            int h = 0, w = 0, c = 0;
+            if (0 != load_output_data(sgs_model_out, i, &(data[i]), &h, &w, &c)) {
+                printf("failed to load output sensor %d !\n", i);
+                break;
+            }
+        }
+        if (MODEL_OUTPUT_NUM >= 2 && data[0] && data[1]) {
+            bbox_cursize = ufface_postprocess_proc(MODEL_INPUT_WIDTH, MODEL_INPUT_HEIGHT, ufface_priors_list, ufface_priors_num, data[0], data[1], bbox_list, MAX_BBOX_NUM);
+            bbox_cursize = nms(bbox_list, bbox_cursize, NMSIOU_THRESH, 1, picture_width, picture_height);
+        }
+        for (i=0; i<MODEL_OUTPUT_NUM; i++) free_output_data(data[i]);
+        for (i=0; i<bbox_cursize; i++) {
+            printf("score: %.2f, category: %2d, rect: (%3d %3d %3d %3d)\n", bbox_list[i].score, bbox_list[i].type,
+                (int)bbox_list[i].x1, (int)bbox_list[i].y1, (int)bbox_list[i].x2, (int)bbox_list[i].y2);
+        }
+        free(ufface_priors_list);
     }
 
     return 0;

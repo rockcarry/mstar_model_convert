@@ -34,3 +34,5 @@ python3 $SGS_IPU_DIR/Scripts/calibrator/simulator.py \
 -c Unknown \
 -t Offline \
 -n caffe_ultra_fast_face
+
+postpc $PWD/log/output/unknown_RFB-320-offline.sim_test.jpg.txt 806 484 ultra-facedet

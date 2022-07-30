@@ -3,7 +3,7 @@
 import cv2
 import numpy as np
 
-def get_image(img_path, resizeH=384, resizeW=640, resizeC=3, norm=True, meanB=127.5, meanG=127.5, meanR=127.5, std=127.5, rgb=True, nchw=False):
+def get_image(img_path, resizeH=384, resizeW=640, resizeC=3, norm=True, meanB=127, meanG=127, meanR=127, std=128, rgb=True, nchw=False):
     img = cv2.imread(img_path)
     if img is None:
         raise FileNotFoundError('No such image: {}'.format(img_path))

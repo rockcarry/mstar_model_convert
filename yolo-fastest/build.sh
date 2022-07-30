@@ -23,7 +23,7 @@ python3 $SGS_IPU_DIR/Scripts/calibrator/calibrator.py \
 -o $PWD/yolo-fastest-1.1-xl-fixed.sim \
 -c Unknown \
 -n caffe_yolo_fastest \
---quant_level L5 \
+--quant_level L2 \
 --input_config $PWD/input_config.ini
 
 echo "convert yolo-fastest from sgs fixed to sgs offline ..."
@@ -41,4 +41,4 @@ python3 $SGS_IPU_DIR/Scripts/calibrator/simulator.py \
 -n caffe_yolo_fastest
 
 echo "post process simulator output log, and get detection result ..."
-postpc $PWD/log/output/unknown_yolo-fastest-1.1-xl-offline.sim_test.jpg.txt 640 424
+postpc $PWD/log/output/unknown_yolo-fastest-1.1-xl-offline.sim_test.jpg.txt 640 424 yolo-fastest

@@ -271,13 +271,15 @@ int main(int argc, char *argv[])
     int    picture_height= MODEL_INPUT_HEIGHT;
     BBOX   bbox_list[MAX_BBOX_NUM];
     int    bbox_cursize = 0, i;
+    int    yolofast_classnum  = MODEL_CLASS_NUMBER;
     float *ufface_priors_list = NULL;
     int    ufface_priors_num  = 0;
 
-    if (argc > 1) sgs_model_out = argv[1];
-    if (argc > 2) picture_width = atoi(argv[2]);
-    if (argc > 3) picture_height= atoi(argv[3]);
-    if (argc > 4) model_type    = argv[4];
+    if (argc > 1) sgs_model_out     = argv[1];
+    if (argc > 2) picture_width     = atoi(argv[2]);
+    if (argc > 3) picture_height    = atoi(argv[3]);
+    if (argc > 4) model_type        = argv[4];
+    if (argc > 5) yolofast_classnum = atoi(argv[5]);
     printf("sgs_model_out : %s\n", sgs_model_out );
     printf("picture_width : %d\n", picture_width );
     printf("picture_height: %d\n", picture_height);
@@ -287,7 +289,7 @@ int main(int argc, char *argv[])
         for (i=0; i<MODEL_OUTPUT_NUM; i++) {
             float *data = NULL; int h = 0, w = 0, c = 0;
             if (0 != load_output_data(sgs_model_out, i, &data, &h, &w, &c)) break;
-            bbox_cursize = yolov3(data, h, w, c, MODEL_CLASS_NUMBER, SCORE_THRESH, s_anchor_list[i], bbox_list, bbox_cursize, MAX_BBOX_NUM);
+            bbox_cursize = yolov3(data, h, w, c, yolofast_classnum, SCORE_THRESH, s_anchor_list[i], bbox_list, bbox_cursize, MAX_BBOX_NUM);
             free_output_data(data);
         }
 

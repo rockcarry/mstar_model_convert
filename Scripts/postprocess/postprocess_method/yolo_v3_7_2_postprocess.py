@@ -2,6 +2,7 @@ from TFLitePostProcess import *
 from anchor_param import *
 from third_party import tflite
 import math
+from mace.python.tools.convert_util import getIPUVersion
 
 def BoxDecoder(sgs_builder,model_config,unpack_output_tensors):
     output_num = 3
@@ -144,7 +145,7 @@ def buildGraph(sgs_builder,model_config):
                    (b"scores_offset",5,"int"),
                    (b"scores_lengh",3,"int"),
                    (b"max_score",1,"int")]
-    options = sgs_builder.createFlexBuffer( sgs_builder.lib, cus_options)
+    options = sgs_builder.createFlexBuffer(cus_options)
     sgs_builder.buildOperatorCode("SGS_unpack",sgs_builder.BuiltinOperator.CUSTOM,cus_code)
     sgs_builder.buildOperator("SGS_unpack",concat_out_tensors, unpack_output_tensors,None,None,options)
 
@@ -214,13 +215,16 @@ def buildGraph(sgs_builder,model_config):
                    (b"num_classes_with_background",1,"int"),
                    (b"nms_score_threshold",0.8,"float"),
                    (b"nms_iou_threshold",0.40,"float")]
-    options = sgs_builder.createFlexBuffer( sgs_builder.lib, cus_options)
+    options = sgs_builder.createFlexBuffer(cus_options)
     sgs_builder.buildOperator("SGS_nms",nms_in_tensors,nms_out_tensors,None,None,options)
 
 
     sgs_builder.subgraphs.append( sgs_builder.buildSubGraph(model_config["input"],nms_out_tensors,model_config["name"]))
     sgs_builder.model = sgs_builder.createModel(3,sgs_builder.operator_codes,sgs_builder.subgraphs,model_config["name"],sgs_builder.buffers)
-    file_identifier = b'TFL3'
+    if getIPUVersion() == 'M6' or getIPUVersion() == 'I6E':
+        file_identifier = b'TFL3'
+    else:
+        file_identifier = b'SIM2'
     sgs_builder.builder.Finish(sgs_builder.model, file_identifier)
     buf = sgs_builder.builder.Output()
     return buf
@@ -239,8 +243,7 @@ def get_postprocess():
         f.write(yolov3_buf)
         f.close()
     print("\nWell Done!" + " " + outfilename  + " generated!\n")
+    return outfilename
 
 def model_postprocess():
     return get_postprocess()
-
-

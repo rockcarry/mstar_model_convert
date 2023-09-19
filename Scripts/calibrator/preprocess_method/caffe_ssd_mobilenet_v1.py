@@ -19,19 +19,18 @@ def get_image(img_path, resizeH=300, resizeW=300, resizeC=3, norm=True, meanB=12
     img_float = img.astype('float32')
     img_norm = cv2.resize(img_float, (resizeW, resizeH), interpolation=cv2.INTER_LINEAR)
 
-    if norm and (resizeC == 3):
+    if norm:
         img_norm = (img_norm - [meanB, meanG, meanR]) / std
         img_norm = img_norm.astype('float32')
-    elif norm and (resizeC == 1):
-        img_norm = (img_norm - meanB) / std
-        img_norm = img_norm.astype('float32')
+    else:
+        img_norm = np.round(img_norm).astype('uint8')
 
     if rgb:
         img_norm = cv2.cvtColor(img_norm, cv2.COLOR_BGR2RGB)
 
     if nchw:
         # NCHW
-        img_norm = np.transpose(img_norm.reshape(resizeW, resizeH, -1), axes=(2, 0, 1))
+        img_norm = np.transpose(img_norm, axes=(2, 0, 1))
 
     return np.expand_dims(img_norm, 0)
 

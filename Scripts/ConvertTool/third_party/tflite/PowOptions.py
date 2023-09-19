@@ -3,20 +3,34 @@
 # namespace: tflite
 
 from third_party.python import flatbuffers
+from third_party.python.flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class PowOptions(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsPowOptions(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = PowOptions()
         x.Init(buf, n + offset)
         return x
+
+    @classmethod
+    def GetRootAsPowOptions(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
+    @classmethod
+    def PowOptionsBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x53\x49\x4D\x32", size_prefixed=size_prefixed)
 
     # PowOptions
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
 
 def PowOptionsStart(builder): builder.StartObject(0)
+def Start(builder):
+    return PowOptionsStart(builder)
 def PowOptionsEnd(builder): return builder.EndObject()
+def End(builder):
+    return PowOptionsEnd(builder)

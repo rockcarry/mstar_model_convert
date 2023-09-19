@@ -19,11 +19,12 @@ def get_image(img_path, resizeH=28, resizeW=28, norm=True, meanR=33.318, std=1, 
 
     if norm:
         img_norm = (img_norm - meanR) / std
-        img_norm = np.expand_dims(img_norm, axis=2) 
+        img_norm = np.expand_dims(img_norm, axis=2)
         dummy = np.zeros((28,28,2))
         img_norm = np.concatenate((img_norm,dummy),axis=2)
         img_norm = img_norm.astype('float32')
     else:
+        img_norm = np.expand_dims(img_norm, 2)
         img_norm = np.round(img_norm).astype('uint8')
 
     if rgb:
@@ -31,7 +32,7 @@ def get_image(img_path, resizeH=28, resizeW=28, norm=True, meanR=33.318, std=1, 
 
     if nchw:
         # NCHW
-        img_norm = np.transpose(img_norm.reshape(resizeW, resizeH, -1), axes=(2, 0, 1))
+        img_norm = np.transpose(img_norm, axes=(2, 0, 1))
 
     return np.expand_dims(img_norm, 0)
 

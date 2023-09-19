@@ -3,16 +3,26 @@
 # namespace: tflite
 
 from third_party.python import flatbuffers
+from third_party.python.flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class AddOptions(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsAddOptions(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = AddOptions()
         x.Init(buf, n + offset)
         return x
+
+    @classmethod
+    def GetRootAsAddOptions(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
+    @classmethod
+    def AddOptionsBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x53\x49\x4D\x32", size_prefixed=size_prefixed)
 
     # AddOptions
     def Init(self, buf, pos):
@@ -25,6 +35,22 @@ class AddOptions(object):
             return self._tab.Get(flatbuffers.number_types.Int8Flags, o + self._tab.Pos)
         return 0
 
-def AddOptionsStart(builder): builder.StartObject(1)
+    # AddOptions
+    def PotScaleInt16(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        if o != 0:
+            return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
+        return True
+
+def AddOptionsStart(builder): builder.StartObject(2)
+def Start(builder):
+    return AddOptionsStart(builder)
 def AddOptionsAddFusedActivationFunction(builder, fusedActivationFunction): builder.PrependInt8Slot(0, fusedActivationFunction, 0)
+def AddFusedActivationFunction(builder, fusedActivationFunction):
+    return AddOptionsAddFusedActivationFunction(builder, fusedActivationFunction)
+def AddOptionsAddPotScaleInt16(builder, potScaleInt16): builder.PrependBoolSlot(1, potScaleInt16, 1)
+def AddPotScaleInt16(builder, potScaleInt16):
+    return AddOptionsAddPotScaleInt16(builder, potScaleInt16)
 def AddOptionsEnd(builder): return builder.EndObject()
+def End(builder):
+    return AddOptionsEnd(builder)

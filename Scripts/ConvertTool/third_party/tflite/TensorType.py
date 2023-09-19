@@ -12,4 +12,11 @@ class TensorType(object):
     BOOL = 6
     INT16 = 7
     COMPLEX64 = 8
+    INT8 = 9
+    FLOAT64 = 10
+    COMPLEX128 = 11
+    UINT64 = 12
+    RESOURCE = 13
+    VARIANT = 14
+    UINT32 = 15
 

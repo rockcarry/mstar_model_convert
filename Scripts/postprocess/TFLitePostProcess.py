@@ -5,9 +5,9 @@ import six
 import ctypes
 from anchor_param import  *
 import pdb
-if 'TOP_DIR' in os.environ:
-    Project_path = os.environ['TOP_DIR']
-    sys.path.insert(0, os.path.join(Project_path, "../SRC/Tool/Scripts/ConvertTool"))
+if 'IPU_TOOL' in os.environ:
+    Project_path = os.environ['IPU_TOOL']
+    sys.path.insert(0, os.path.join(Project_path, "Scripts/ConvertTool"))
 elif 'SGS_IPU_DIR' in os.environ:
     Project_path = os.environ['SGS_IPU_DIR']
     sys.path.insert(0, os.path.join(Project_path, "Scripts/ConvertTool"))
@@ -18,6 +18,11 @@ from third_party.tflite import Model
 from third_party.tflite import BuiltinOperator
 from third_party.python import flatbuffers
 
+from mace.python.tools.convert_util import getIPUVersion
+from mace.python.tools.convert_util import mace_check
+
+
+
 class TFLitePostProcess:
 
     def __init__(self):
@@ -25,14 +30,12 @@ class TFLitePostProcess:
         self.BuiltinOperator = tflite.BuiltinOperator.BuiltinOperator()
         self.TensorType = tflite.TensorType.TensorType()
         self.CustomOptionsFormat = tflite.CustomOptionsFormat.CustomOptionsFormat()
-        self.so = ctypes.cdll.LoadLibrary
-        #self.lib = self.so("env/Lib/flexbuffers/libSGSCusOP.so")
-        if 'TOP_DIR' in os.environ:
-            Project_path = os.environ['TOP_DIR']
-            self.lib = self.so(os.path.join(Project_path, "../SRC/Tool/libs/x86_64/libSGSCusOP.so"))
+        if 'IPU_TOOL' in os.environ:
+            Project_path = os.environ['IPU_TOOL']
+            self.lib = ctypes.cdll.LoadLibrary(os.path.join(Project_path, "libs/x86_64/libSGSCusOP.so"))
         elif 'SGS_IPU_DIR' in os.environ:
             Project_path = os.environ['SGS_IPU_DIR']
-            self.lib = self.so(os.path.join(Project_path, "libs/x86_64/libSGSCusOP.so"))
+            self.lib = ctypes.cdll.LoadLibrary(os.path.join(Project_path, "libs/x86_64/libSGSCusOP.so"))
         else:
             raise OSError('Run `source cfg_env.sh` in top directory.')
         self.null_quant = self.createQuantizationParameters([],[],[],[])
@@ -100,6 +103,21 @@ class TFLitePostProcess:
         tflite.ConcatenationOptions.ConcatenationOptionsAddFusedActivationFunction(self.builder, fused_activation_function)
         concat_options = tflite.ConcatenationOptions.ConcatenationOptionsEnd(self.builder)
         return concat_options
+
+    def createStridedSliceOptions(self, beginMask,endMask,ellipsisMask,newAxisMask,shrinkAxisMask):
+        '''
+
+        :param new_shape: a list of int
+        :return: offset of the reshape options
+        '''
+        tflite.StridedSliceOptions.StridedSliceOptionsStart(self.builder)
+        tflite.StridedSliceOptions.StridedSliceOptionsAddBeginMask(self.builder, beginMask)
+        tflite.StridedSliceOptions.StridedSliceOptionsAddEndMask(self.builder, endMask)
+        tflite.StridedSliceOptions.StridedSliceOptionsAddEllipsisMask(self.builder, ellipsisMask)
+        tflite.StridedSliceOptions.StridedSliceOptionsAddNewAxisMask(self.builder, newAxisMask)
+        tflite.StridedSliceOptions.StridedSliceOptionsAddShrinkAxisMask(self.builder, shrinkAxisMask)
+        stridedslice_options = tflite.StridedSliceOptions.StridedSliceOptionsEnd(self.builder)
+        return stridedslice_options
 
     def createUnpackOptions(self, num, axis):
         '''
@@ -172,46 +190,45 @@ class TFLitePostProcess:
         Split_optons = tflite.SplitOptions.SplitOptionsEnd(self.builder)
         return Split_optons
 
-    def createFlexBuffer(self, lib,values):
+    def createFlexBuffer(self, values):
         '''
-        lib: the flexbuffer handle
         values: an array of tuples(string,value[int/float],string["int"/"float"])
 
         return an encoded flexbuffer bytearray
         '''
 
-        lib.startCreatFlexBuffer.restype = None
+        self.lib.startCreatFlexBuffer.restype = None
 
-        lib.startCreatFlexBuffer()
+        self.lib.startCreatFlexBuffer()
         for value in values:
             if value[-1] == "int":
-                lib.insertIntString.argtypes = [ctypes.c_char_p,ctypes.c_int]
-                lib.insertIntString.restype = None
+                self.lib.insertIntString.argtypes = [ctypes.c_char_p,ctypes.c_int]
+                self.lib.insertIntString.restype = None
                 value_name = value[0]
                 value_name = bytes(value_name)
-                lib.insertIntString(value_name,value[1])
+                self.lib.insertIntString(value_name,value[1])
             elif value[-1] == "float":
-                lib.insertFloatString.argtypes = [ctypes.c_char_p,ctypes.c_float]
-                lib.insertFloatString.restype = None
+                self.lib.insertFloatString.argtypes = [ctypes.c_char_p,ctypes.c_float]
+                self.lib.insertFloatString.restype = None
                 value_name = value[0]
                 value_name = bytes(value_name)
-                lib.insertFloatString(value_name,value[1])
+                self.lib.insertFloatString(value_name,value[1])
             else:
-                print('\033[31mOnly Int and Float surpported.\033[0m')
+                print('\033[31mOnly Int and Float supported.\033[0m')
 
         c_ubyte_p = ctypes.POINTER(ctypes.c_ubyte)
-        lib.getFlexBufferData.restype = c_ubyte_p
-        cusData = lib.getFlexBufferData()
+        self.lib.getFlexBufferData.restype = c_ubyte_p
+        cusData = self.lib.getFlexBufferData()
 
-        lib.getFlexBufferLenth.restype = ctypes.c_int
-        bufferLen = lib.getFlexBufferLenth()
+        self.lib.getFlexBufferLenth.restype = ctypes.c_int
+        bufferLen = self.lib.getFlexBufferLenth()
 
         _allByteArray = bytearray()
         for i in six.moves.range(bufferLen):
            _allByteArray.append(cusData[i])
 
-        lib.endCreatFlexBuffer.restype = None
-        lib.endCreatFlexBuffer()
+        self.lib.endCreatFlexBuffer.restype = None
+        self.lib.endCreatFlexBuffer()
         return _allByteArray
 
     def createModel(self, version, operator_codes, subgraphs, description,buffers,metadata_buffer=None):
@@ -278,7 +295,12 @@ class TFLitePostProcess:
         '''
         custom_code = self.builder.CreateString(custom_code)
         tflite.OperatorCode.OperatorCodeStart(self.builder)
-        tflite.OperatorCode.OperatorCodeAddBuiltinCode(self.builder,builtin_code)
+        if getIPUVersion() == 'M6' or getIPUVersion() == 'I6E':
+            if builtin_code > 127:#schema 1.14 The maximum number of operators supported is 128(0~127)
+                mace_check(0, 'Model schema version is higher than 1.14, Please check model !! \n ')
+            tflite.OperatorCode.OperatorCodeAddDeprecatedBuiltinCode(self.builder, builtin_code)
+        else:
+            tflite.OperatorCode.OperatorCodeAddBuiltinCode(self.builder, builtin_code)
         tflite.OperatorCode.OperatorCodeAddCustomCode(self.builder, custom_code)
         tflite.OperatorCode.OperatorCodeAddVersion(self.builder, version)
         operator_code = tflite.OperatorCode.OperatorCodeEnd(self.builder)
@@ -503,17 +525,6 @@ class TFLitePostProcess:
         :param buffer_data: None:a buffer for variable tensor
         :return:
         """
-        if len(self.buffers) == 0:
-            tmp_buffer = self.createBuffer(None)
-            self.buffers_dict['NULL'] = (tmp_buffer,len(self.buffers))
-            self.buffers.append(tmp_buffer)
-        else:
-            None
-
-        if buffer_data is None:
-            return self.buffers_dict['NULL'][-1]
-        else:
-            None
 
         tmp_buffer = self.createBuffer(buffer_data)
         self.buffers_dict[buffer_name] = (buffer_data,len(self.buffers))
@@ -526,7 +537,7 @@ class TFLitePostProcess:
         :param buffer_name:
         :return:
         """
-        if self.buffers_dict.__contains__(buffer_name):
+        if buffer_name in self.buffers_dict:
             return self.buffers_dict[buffer_name][-1]
         else:
             return None
@@ -564,7 +575,7 @@ class TFLitePostProcess:
         else:
             return None
 
-    def buildTensor(self, shape, name, buffer=0,type = tflite.TensorType.TensorType().FLOAT32):
+    def buildTensor(self, shape, name, buffer=-1,type = tflite.TensorType.TensorType().FLOAT32):
         """
         :param shape:
         :param name:
@@ -574,8 +585,15 @@ class TFLitePostProcess:
         if self.tensors_dict.__contains__(name):
             return self.tensors_dict[name][-1]
         else:
-            tmp_tensor = self.createTensor(shape,type,buffer,name,False,self.null_quant)
-            self.tensors_dict[name] = (shape,buffer,len(self.tensors))
+            if buffer == -1:
+                buffer_id = self.getBufferByName(name)
+                if buffer_id == None:
+                    self.buildBuffer(name)
+                    buffer_id = self.getBufferByName(name)
+            else:
+                buffer_id = buffer
+            tmp_tensor = self.createTensor(shape,type,buffer_id,name,False,self.null_quant)
+            self.tensors_dict[name] = (shape,buffer_id,len(self.tensors))
             self.tensors.append(tmp_tensor)
         return self.tensors_dict[name][-1]
 
@@ -1249,7 +1267,7 @@ class TFLitePostProcess:
         w_sub_div_out_tensors.append("w_sub_reciprocal_tensor")
         cus_code = 'Reciprocal'
         cus_options = [(b"numeratort",1,"int")]
-        options = self.createFlexBuffer(self.lib, cus_options)
+        options = self.createFlexBuffer(cus_options)
         self.buildOperatorCode("SGS_w_sub_reciprocal",self.BuiltinOperator.CUSTOM, cus_code)
         self.buildOperator("SGS_w_sub_reciprocal",w_sub_div_in_tensors,w_sub_div_out_tensors)
 
@@ -1312,7 +1330,7 @@ class TFLitePostProcess:
         h_sub_div_out_tensors.append("h_sub_reciprocal_tensor")
         cus_code = 'Reciprocal'
         cus_options = [(b"numeratort",1,"int")]
-        options = self.createFlexBuffer(self.lib, cus_options)
+        options = self.createFlexBuffer(cus_options)
         self.buildOperatorCode("SGS_h_sub_reciprocal",self.BuiltinOperator.CUSTOM, cus_code)
         self.buildOperator("SGS_h_sub_reciprocal",h_sub_div_in_tensors,h_sub_div_out_tensors)
 

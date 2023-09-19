@@ -14,16 +14,62 @@ enum DataType {
   DT_HALF = 3;
   DT_INT32 = 4;
   DT_FLOAT16 = 5;
+  DT_INT8 = 6;
+  DT_INT16 = 7;
+  DT_FLOAT64 = 8;
+  DT_COMPLEX128 = 9;
+  DT_UINT64 = 10;
+  DT_UINT32 = 11;
 }
+
 enum DataFormat {
   DT_NONE = 0;
   DT_NCHW = 1;
   DT_NHWC = 2;
 }
+
 enum MemoryType {
   CPU_BUFFER = 0;
   GPU_BUFFER = 1;
   GPU_IMAGE = 2;
+}
+
+enum DimensionType {
+  DENSE = 0;
+  SPARSE_CSR = 1;
+}
+
+message Int32Vector {
+  repeated int32 values = 1;
+}
+
+message Uint16Vector {
+  repeated uint32 values = 1;
+}
+
+message Uint8Vector {
+  repeated uint32 values = 1;
+}
+
+message SparseIndexVector {
+  optional Int32Vector s32Vector = 1;
+  optional Uint16Vector u16Vector = 2;
+  optional Uint8Vector u8Vector = 3;
+}
+
+message DimensionMetadata {
+  optional DimensionType format = 1;
+  optional int32 dense_size = 2;
+  optional SparseIndexVector array_segments = 3;
+  optional SparseIndexVector array_indices = 4;
+  optional string ArrayIndicesVecType = 5;
+  optional string ArraySegmentsVecType = 6;
+}
+
+message SparsityParameters {
+  repeated int32 traversal_order = 1;
+  repeated int32 block_map = 2;
+  repeated DimensionMetadata dim_metadata = 3; 
 }
 
 message ConstTensor {
@@ -34,13 +80,16 @@ message ConstTensor {
   optional string name = 5;
   optional int64 offset = 6;
   optional int64 data_size = 7;
-  optional float scale = 8;
-  optional int32 zero_point = 9;
-  optional float minval = 10;
-  optional float maxval = 11;
+  repeated float scale = 8;
+  repeated int32 zero_point = 9;
+  repeated float minval = 10;
+  repeated float maxval = 11;
   optional bool quantized = 12 [default = false];
   optional DataFormat data_format = 13 [default = DT_NCHW];
+  optional bool do_auto_transpose = 14 [default = true];
   optional uint32 node_id = 100;
+  optional SparsityParameters sparsity = 101;
+  repeated int32 shape_signature = 102;
 }
 
 message Argument {
@@ -50,6 +99,7 @@ message Argument {
   optional bytes s = 4;
   repeated float floats = 5;
   repeated int64 ints = 6;
+  optional string str = 7;
 }
 
 // for hexagon mace-nnlib
@@ -88,6 +138,7 @@ message OperatorDef {
   optional uint32 padding = 102;
   repeated NodeInput node_input = 103;
   repeated int32 out_max_byte_size = 104;  // only support 32-bit len
+  repeated int32 intermediates = 105;
 }
 
 message InputOutputInfo {
@@ -101,6 +152,23 @@ message InputOutputInfo {
   optional int32 zero_point = 8;
 }
 
+message Metadata {
+  repeated string name = 1;
+  repeated uint32 buffer = 2;
+}
+
+message TensorMap {
+  repeated string name = 1;
+  repeated uint32 tensor_index = 2;
+}
+
+message SignatureDef {
+  repeated TensorMap inputs = 1;
+  repeated TensorMap outputs = 2;
+  repeated string signature_key = 3;
+  repeated uint32 subgraph_index = 4;
+}
+
 message NetDef {
   repeated OperatorDef op = 1;
   repeated Argument arg = 2;
@@ -109,4 +177,8 @@ message NetDef {
 
   repeated InputOutputInfo input_info = 100;
   repeated InputOutputInfo output_info = 101;
+  
+  repeated Metadata metadata = 102;
+  repeated SignatureDef signature_defs = 103;
 }
+

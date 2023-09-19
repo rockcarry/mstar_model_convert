@@ -33,15 +33,20 @@ DUMP_MACE = False
 
 
 def convert_from_onnx(model_file,
-                                       input_nodes,
-                                       input_shapes,
-                                       output_nodes,
-                                       output_file,
-                                       input_pack_model,
-                                       rawdata=False):
-
-    if not os.path.exists(model_file):
-        raise NameError('Input graph file {} does not exist!'.format(model_file))
+                           input_nodes,
+                           input_shapes,
+                           output_nodes,
+                           output_file,
+                           input_pack_model,
+                           output_pack_model,
+                           input_name_format_map,
+                           fixedC2fixedWO,
+                           skip_simplify,
+                           saved_refine_onnx=True,
+                           is_decrypt=False):
+    if type(model_file) is str:
+        if not os.path.exists(model_file):
+            raise NameError('Input graph file {} does not exist!'.format(model_file))
 
 
     option = cvt.ConverterOption()
@@ -65,19 +70,36 @@ def convert_from_onnx(model_file,
         option.add_output_node(output_node)
 
     option.build()
+    if input_pack_model != 'None':
+        input_pack_model_names = input_pack_model.split(',')
+    else:
+        input_pack_model_names = input_pack_model
+    if output_pack_model != 'None':
+        output_pack_model_names = output_pack_model.split(',') # list
+    else:
+        output_pack_model_names = output_pack_model
+    six.print_("Transform model to one that can better run on device")
+
     from mace.python.tools.converter_tool import onnx_converter
+
     converter = onnx_converter.OnnxConverter(option,
                                                input_shapes,
                                                model_file,
-                                               rawdata=False)
-
+                                               input_name_format_map,
+                                               fixedC2fixedWO,
+                                               skip_simplify,
+                                               saved_refine_onnx,
+                                               is_decrypt)
     #output_graph_def = converter.run()
-    output_graph_def,input_node_shapes_array = converter.run()
-    from mace.python.tools.onnx import SGSModel_converter_onnx
+    output_graph_def,input_node_name_shapes_map = converter.run()
+    from mace.python.tools import SGSModel_converter_from_Mace
     if DUMP_MACE:
       file_name = output_dir.strip("./").split(".")[0]
       f = open(file_name+'_mace.txt', 'w')
       f.write(str(output_graph_def))
       f.close()
-    convertSGS = SGSModel_converter_onnx.ConvertSGSModel(output_graph_def, input_node_names, input_node_shapes_array, output_node_names, output_dir, input_pack_model)
+
+    convertSGS = SGSModel_converter_from_Mace.ConvertSGSModel(output_graph_def, input_node_names, output_node_names, output_dir,
+                                                None, None, None, input_node_name_shapes_map, input_name_format_map,
+                                                input_pack_model_names, output_pack_model_names, platform='onnx')
     return convertSGS

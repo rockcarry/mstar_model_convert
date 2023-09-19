@@ -1,0 +1,171 @@
+# =======================================
+# Debug.sim -> float.sim
+# =======================================
+DEBUG_2_FLOAT_CONFIG: [
+remove_unused_tensor_and_ops,
+check_all_tensors_are_valid,
+reorder_execute_operators_by_depth,
+drop fake quant,
+drop cast,
+insert_transpose_for_convolution3d,
+insert_transpose_for_pool3d,
+insert_pad_for_convolution3d,
+resolve_multi_consumer_tensor,
+reorder_target_op_and_transpose,
+insert_float2fix_operators,
+space_to_batch_nd,
+batch_to_space_nd,
+swap_elementwise_params,
+resolve_layer_norm,
+resolve_gelu_operator,
+division_to_multiplication,
+full_connection_to_convolution_2d,
+batchmatmul_to_convolution_2d,
+divide_high_dimensional_convolution,
+divide_high_dimensional_pooling,
+convert_pixel_mode_depthwiseconv_to_conv2d,
+convert_pureconv_to_conv2d,
+expand_ele_inner_dimension,
+# resolve_alpha_blending,
+replace_addn_to_add,
+# force_conv_hwtile_16_16,
+resolve_prelu_leakyrelu,
+folder_const,
+transpose_conv,
+extend_convolution_parameters,
+disassemble_activation_func,
+fuse_trivial_elementwise_ops,
+remove_unused_select,
+reorder_elementwise_and_reshape,
+fuse_elementwise_to_following_conv,
+merge_dma_ops,
+fuse_maximum_and_minimum,
+drop_inputs_domain,
+resolve_ops_option,
+fuse_pad_into_following_ops,
+fuse_pad_into_pooling_for_caffe,
+insert_mul_for_multiple_consumer_input,
+insert_dmacoef_matrix,
+insert_align_operator,
+infect_datatype,
+check_all_ops_is_supported_or_not,
+remove_unused_tensor_and_ops,
+check_all_tensors_are_valid,
+reorder_execute_operators_by_depth,
+]
+
+# =======================================
+# float.sim -> cmodel_float.sim
+# Only two passes(infect_datatype, infect_quant_domain) are different
+# from FLOAT_2_CMODEL_FLOAT_VERIFY_CONFIG, and the others are same.
+# Modify FLOAT_2_CMODEL_FLOAT_VERIFY_CONFIG at same time.
+# =======================================
+FLOAT_2_CMODEL_FLOAT_CONFIG: [
+fuse_elementwise_to_preceding_ops,
+fuse_activation_functions,
+preprocess_per_CHN_minmax,
+infect_datatype,
+infect_quant_domain,
+calcu_qab_minmax,
+fuse_single_port_multiply_add,
+remove_unused_tensor_and_ops,
+reorder_execute_operators_by_depth,
+]
+
+# =======================================
+# cmodel_float.sim -> fixed.sim
+# =======================================
+CMODEL_FLOAT_2_FIXED_CONFIG: [
+compress_elementwise_dimension,
+elementwise_reshape_to_improve_efficiency,
+collapse_elementwise_inputaxis,
+resolve_trivial_dma_ops,
+append_fix2float_operators,
+insert_format_convert,
+set_tensor_memory_layout_type,
+output_no_mmu,
+skip_tensor_into_MMU,
+skip_concatenation,
+optimize_shuffle,
+resolve_quantization_and_op_params,
+convert_depthwiseconv_to_conv2d,
+convolution2d_to_convolution3d,
+separate_pad_from_following_ops,
+remove_unused_tensor_and_ops,
+resolve_skip_and_alias_ops,
+reorder_execute_operators_by_depth,
+resolve_domain_group,
+resolve_tensor_qid,
+l3tile_schedule,
+tile_based_global_schedule,
+resolve_finalize_schedule,
+fill_subgraph_info,
+check_all_ops_is_supported_or_not,
+check_all_tensors_are_valid,
+]
+
+# =======================================
+# cmodel_float.sim -> fixed_without_ipu_ctrl.sim
+# =======================================
+CMODEL_FLOAT_2_FIXEDWO_CONFIG: [
+compress_elementwise_dimension,
+elementwise_reshape_to_improve_efficiency,
+collapse_elementwise_inputaxis,
+resolve_trivial_dma_ops,
+append_fix2float_operators,
+insert_format_convert,
+output_no_mmu,
+skip_tensor_into_MMU,
+resolve_quantization_and_op_params,
+convert_depthwiseconv_to_conv2d,
+convolution2d_to_convolution3d,
+separate_pad_from_following_ops,
+remove_unused_tensor_and_ops,
+resolve_skip_and_alias_ops,
+fill_subgraph_info,
+check_all_ops_is_supported_or_not,
+check_all_tensors_are_valid,
+]
+
+# =======================================
+# fixed_without_ipu_ctrl.sim -> fixed.sim
+# =======================================
+FIXEDWO_2_FIXED_CONFIG: [
+set_tensor_memory_layout_type,
+skip_concatenation,
+optimize_shuffle,
+resolve_skip_and_alias_ops,
+reorder_execute_operators_by_depth,
+resolve_domain_group,
+resolve_tensor_qid,
+l3tile_schedule,
+tile_based_global_schedule,
+resolve_finalize_schedule,
+]
+
+# =======================================
+# float.sim -> cmodel_float.sim
+# Only two passes(datatype_infect_and_verify, quant_domain_infect_and_verify)
+# are different from FLOAT_2_CMODEL_FLOAT_CONFIG, and the others are same.
+# Modify FLOAT_2_CMODEL_FLOAT_CONFIG at same time.
+# =======================================
+FLOAT_2_CMODEL_FLOAT_VERIFY_CONFIG: [
+fuse_elementwise_to_preceding_ops,
+fuse_activation_functions,
+preprocess_per_CHN_minmax,
+datatype_infect_and_verify,
+quant_domain_infect_and_verify,
+calcu_qab_minmax,
+fuse_single_port_multiply_add,
+reorder_execute_operators_by_depth
+]
+
+# =======================================
+# For sim_optimizer.py
+# 8/16 bits mixed quantification
+# =======================================
+8_16_MIX_OPTIM_CONFIG: [
+preprocess_per_CHN_minmax,
+infect_datatype,
+infect_quant_domain
+]

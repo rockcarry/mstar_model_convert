@@ -3,7 +3,7 @@ import pdb
 import argparse
 import copy
 from onnx import helper, checker, TensorProto
-from mace.python.tools.onnx import symbolic_shape_infer
+from mace.python.tools.sgs_onnx import symbolic_shape_infer
 
 def remove_node_and_save(input_model_path, output_model_path, allshape, remove_node_name):
     onnx_model = onnx.load(input_model_path)

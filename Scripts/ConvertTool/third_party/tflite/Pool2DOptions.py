@@ -3,16 +3,26 @@
 # namespace: tflite
 
 from third_party.python import flatbuffers
+from third_party.python.flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class Pool2DOptions(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsPool2DOptions(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = Pool2DOptions()
         x.Init(buf, n + offset)
         return x
+
+    @classmethod
+    def GetRootAsPool2DOptions(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
+    @classmethod
+    def Pool2DOptionsBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x53\x49\x4D\x32", size_prefixed=size_prefixed)
 
     # Pool2DOptions
     def Init(self, buf, pos):
@@ -89,14 +99,38 @@ class Pool2DOptions(object):
         return 0
 
 def Pool2DOptionsStart(builder): builder.StartObject(10)
+def Start(builder):
+    return Pool2DOptionsStart(builder)
 def Pool2DOptionsAddPadding(builder, padding): builder.PrependInt8Slot(0, padding, 0)
+def AddPadding(builder, padding):
+    return Pool2DOptionsAddPadding(builder, padding)
 def Pool2DOptionsAddStrideW(builder, strideW): builder.PrependInt32Slot(1, strideW, 0)
+def AddStrideW(builder, strideW):
+    return Pool2DOptionsAddStrideW(builder, strideW)
 def Pool2DOptionsAddStrideH(builder, strideH): builder.PrependInt32Slot(2, strideH, 0)
+def AddStrideH(builder, strideH):
+    return Pool2DOptionsAddStrideH(builder, strideH)
 def Pool2DOptionsAddFilterWidth(builder, filterWidth): builder.PrependInt32Slot(3, filterWidth, 0)
+def AddFilterWidth(builder, filterWidth):
+    return Pool2DOptionsAddFilterWidth(builder, filterWidth)
 def Pool2DOptionsAddFilterHeight(builder, filterHeight): builder.PrependInt32Slot(4, filterHeight, 0)
+def AddFilterHeight(builder, filterHeight):
+    return Pool2DOptionsAddFilterHeight(builder, filterHeight)
 def Pool2DOptionsAddFusedActivationFunction(builder, fusedActivationFunction): builder.PrependInt8Slot(5, fusedActivationFunction, 0)
+def AddFusedActivationFunction(builder, fusedActivationFunction):
+    return Pool2DOptionsAddFusedActivationFunction(builder, fusedActivationFunction)
 def Pool2DOptionsAddPaddingLeft(builder, paddingLeft): builder.PrependInt32Slot(6, paddingLeft, 0)
+def AddPaddingLeft(builder, paddingLeft):
+    return Pool2DOptionsAddPaddingLeft(builder, paddingLeft)
 def Pool2DOptionsAddPaddingRight(builder, paddingRight): builder.PrependInt32Slot(7, paddingRight, 0)
+def AddPaddingRight(builder, paddingRight):
+    return Pool2DOptionsAddPaddingRight(builder, paddingRight)
 def Pool2DOptionsAddPaddingTop(builder, paddingTop): builder.PrependInt32Slot(8, paddingTop, 0)
+def AddPaddingTop(builder, paddingTop):
+    return Pool2DOptionsAddPaddingTop(builder, paddingTop)
 def Pool2DOptionsAddPaddingBottom(builder, paddingBottom): builder.PrependInt32Slot(9, paddingBottom, 0)
+def AddPaddingBottom(builder, paddingBottom):
+    return Pool2DOptionsAddPaddingBottom(builder, paddingBottom)
 def Pool2DOptionsEnd(builder): return builder.EndObject()
+def End(builder):
+    return Pool2DOptionsEnd(builder)

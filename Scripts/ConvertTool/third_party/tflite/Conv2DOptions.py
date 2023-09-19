@@ -3,16 +3,26 @@
 # namespace: tflite
 
 from third_party.python import flatbuffers
+from third_party.python.flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class Conv2DOptions(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsConv2DOptions(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = Conv2DOptions()
         x.Init(buf, n + offset)
         return x
+
+    @classmethod
+    def GetRootAsConv2DOptions(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
+    @classmethod
+    def Conv2DOptionsBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x53\x49\x4D\x32", size_prefixed=size_prefixed)
 
     # Conv2DOptions
     def Init(self, buf, pos):
@@ -89,14 +99,38 @@ class Conv2DOptions(object):
         return 0
 
 def Conv2DOptionsStart(builder): builder.StartObject(10)
+def Start(builder):
+    return Conv2DOptionsStart(builder)
 def Conv2DOptionsAddPadding(builder, padding): builder.PrependInt8Slot(0, padding, 0)
+def AddPadding(builder, padding):
+    return Conv2DOptionsAddPadding(builder, padding)
 def Conv2DOptionsAddStrideW(builder, strideW): builder.PrependInt32Slot(1, strideW, 0)
+def AddStrideW(builder, strideW):
+    return Conv2DOptionsAddStrideW(builder, strideW)
 def Conv2DOptionsAddStrideH(builder, strideH): builder.PrependInt32Slot(2, strideH, 0)
+def AddStrideH(builder, strideH):
+    return Conv2DOptionsAddStrideH(builder, strideH)
 def Conv2DOptionsAddFusedActivationFunction(builder, fusedActivationFunction): builder.PrependInt8Slot(3, fusedActivationFunction, 0)
+def AddFusedActivationFunction(builder, fusedActivationFunction):
+    return Conv2DOptionsAddFusedActivationFunction(builder, fusedActivationFunction)
 def Conv2DOptionsAddDilationWFactor(builder, dilationWFactor): builder.PrependInt32Slot(4, dilationWFactor, 1)
+def AddDilationWFactor(builder, dilationWFactor):
+    return Conv2DOptionsAddDilationWFactor(builder, dilationWFactor)
 def Conv2DOptionsAddDilationHFactor(builder, dilationHFactor): builder.PrependInt32Slot(5, dilationHFactor, 1)
+def AddDilationHFactor(builder, dilationHFactor):
+    return Conv2DOptionsAddDilationHFactor(builder, dilationHFactor)
 def Conv2DOptionsAddPaddingLeft(builder, paddingLeft): builder.PrependInt32Slot(6, paddingLeft, 0)
+def AddPaddingLeft(builder, paddingLeft):
+    return Conv2DOptionsAddPaddingLeft(builder, paddingLeft)
 def Conv2DOptionsAddPaddingRight(builder, paddingRight): builder.PrependInt32Slot(7, paddingRight, 0)
+def AddPaddingRight(builder, paddingRight):
+    return Conv2DOptionsAddPaddingRight(builder, paddingRight)
 def Conv2DOptionsAddPaddingTop(builder, paddingTop): builder.PrependInt32Slot(8, paddingTop, 0)
+def AddPaddingTop(builder, paddingTop):
+    return Conv2DOptionsAddPaddingTop(builder, paddingTop)
 def Conv2DOptionsAddPaddingBottom(builder, paddingBottom): builder.PrependInt32Slot(9, paddingBottom, 0)
+def AddPaddingBottom(builder, paddingBottom):
+    return Conv2DOptionsAddPaddingBottom(builder, paddingBottom)
 def Conv2DOptionsEnd(builder): return builder.EndObject()
+def End(builder):
+    return Conv2DOptionsEnd(builder)

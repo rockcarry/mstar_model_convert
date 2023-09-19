@@ -545,6 +545,7 @@ message LayerParameter {
   optional ShuffleChannelParameter shuffle_channel_param = 164;
   optional ReorgParameter reorg_param = 157;
   optional UpsampleParameter upsample_param = 149;
+  optional ReverseParameter reverse_param = 160;
   optional CReLUParameter crelu_param = 100022;
   optional ContinuationIndicatorParameter continuation_indicator_param = 208;
   optional ROIPoolingParameter roi_pooling_param = 100017;
@@ -552,6 +553,20 @@ message LayerParameter {
   optional ClipParameter clip_param=100019;
 }
 
+message ReverseParameter {
+  // axis controls the data axis which shall be inverted.
+  // The layout of the content will not be inverted
+  //
+  // The default axis is 0 that means:
+  //   data_previous[n] == data_afterwards[N - n -1]
+  // where N is the shape of axis(n)
+  //
+  // Usually this layer will be used with recurrent layers to invert the
+  // time axis which is axis 0
+  // This layer will therefore swap the order in time but not the
+  // order of the actual data.
+  optional int32 axis = 1 [default = 0];
+}
 message ClipParameter {
     optional float min = 1 [default = 0];
     optional float max = 2 [default = 6];

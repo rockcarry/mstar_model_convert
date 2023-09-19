@@ -2,13 +2,18 @@ from TFLitePostProcess import *
 from  anchor_param import *
 from third_party import tflite
 import pdb
+from mace.python.tools.convert_util import getIPUVersion
+
+MAX_DETECTIONS = 100
+if getIPUVersion() in ['I6DC']:
+    MAX_DETECTIONS = 64
 
 def buildGraph(sgs_builder,model_config):
     """
 
     :return:
     """
-    reshape_out_shape1 =  [1,18760,4]
+    reshape_out_shape1 =  [1,4,18760]
     reshape_out_tensors1 = []
     reshape_in_tensors1 = []
     sgs_builder.buildBuffer('NULL')
@@ -26,7 +31,7 @@ def buildGraph(sgs_builder,model_config):
     reshape_newshape1 = sgs_builder.createReshapeOptions(reshape_out_shape1)
     sgs_builder.buildOperator("SGS_reshape1",reshape_in_tensors1, reshape_out_tensors1,tflite.BuiltinOptions.BuiltinOptions().ReshapeOptions,reshape_newshape1)
 
-    reshape_out_shape2 =  [1,18760,2]
+    reshape_out_shape2 =  [1,2,18760]
     reshape_out_tensors2 = []
     reshape_in_tensors2 = []
     sgs_builder.buildBuffer('NULL')
@@ -44,7 +49,7 @@ def buildGraph(sgs_builder,model_config):
     reshape_newshape2 = sgs_builder.createReshapeOptions(reshape_out_shape2)
     sgs_builder.buildOperator("SGS_reshape2",reshape_in_tensors2, reshape_out_tensors2,tflite.BuiltinOptions.BuiltinOptions().ReshapeOptions,reshape_newshape2)
 
-    reshape_out_shape3 =  [1,18760,10]
+    reshape_out_shape3 =  [1,10,18760]
     reshape_out_tensors3 = []
     reshape_in_tensors3 = []
     sgs_builder.buildBuffer('NULL')
@@ -99,7 +104,7 @@ def buildGraph(sgs_builder,model_config):
     _ChangedOutputIndex = anchor.zeros(16)
     _ChangedOutputShape = anchor.zeros(160)
 
-    unpack_optionts1 = sgs_builder.createUnpackOptions(4, 2)
+    unpack_optionts1 = sgs_builder.createUnpackOptions(4, 1)
     sgs_builder.buildOperator("SGS_unpack1",reshape_out_tensors1,unpack_out_tensors1,tflite.BuiltinOptions.BuiltinOptions().UnpackOptions,unpack_optionts1)
 
     unpack10_multiv0_out_tensors = []
@@ -272,7 +277,7 @@ def buildGraph(sgs_builder,model_config):
         sgs_builder.buildTensor(model_config["shape"],"SGS_unpack2_"+str(i))
         unpack_out_tensors2.append("SGS_unpack2_"+str(i))
     sgs_builder.buildOperatorCode("SGS_unpack2",tflite.BuiltinOperator.BuiltinOperator().UNPACK)
-    unpack_optionts2 = sgs_builder.createUnpackOptions(2, 2)
+    unpack_optionts2 = sgs_builder.createUnpackOptions(2, 1)
     sgs_builder.buildOperator("SGS_unpack2",reshape_out_tensors2,unpack_out_tensors2,tflite.BuiltinOptions.BuiltinOptions().UnpackOptions,unpack_optionts2)
 
     unpack2_sub_out_tensors = []
@@ -290,26 +295,11 @@ def buildGraph(sgs_builder,model_config):
     sgs_builder.buildTensor(model_config["shape"],"unpack2sub_logistic_tensor")
     unpack2sub_logistic_out_tensors.append("unpack2sub_logistic_tensor")
     sgs_builder.buildOperatorCode("SGS_unpack2sub_logistic",tflite.BuiltinOperator.BuiltinOperator().LOGISTIC)
-    sgs_builder.buildOperator("SGS_unpack2sub_logistic",unpack2sub_logistic_in_tensors,unpack2sub_logistic_out_tensors)
+    sgs_builder.buildOperator("SGS_unpack2sub_logistic",unpack2sub_logistic_in_tensors,unpack2sub_logistic_out_tensors)
+
 
 
     """=========================================="""
-
-    transpose_in_tensors = []
-    transpose_in_tensors.append("reshape_tensor3")
-    transpose_vector_val = [0,2,1]
-    transpose_vector=[]
-    for value in transpose_vector_val:
-        transpose_vector += bytearray(struct.pack("i", value))
-    sgs_builder.buildBuffer("transpose_vector",transpose_vector)
-    sgs_builder.buildTensor([len(transpose_vector_val)],"transpose_shape",sgs_builder.getBufferByName("transpose_vector"),tflite.TensorType.TensorType().INT32)
-    transpose_in_tensors.append("transpose_shape")
-    transpose_out_shape =  [1,10,18760]
-    transpose_out_tensors = []
-    sgs_builder.buildTensor(transpose_out_shape,"transpose_tensor")
-    transpose_out_tensors.append("transpose_tensor")
-    sgs_builder.buildOperatorCode("SGS_transpose",tflite.BuiltinOperator.BuiltinOperator().TRANSPOSE)
-    sgs_builder.buildOperator("SGS_transpose",transpose_in_tensors, transpose_out_tensors)
 
     unpack_out_tensors3 = []
     for i in range(10):
@@ -317,7 +307,7 @@ def buildGraph(sgs_builder,model_config):
         unpack_out_tensors3.append("SGS_unpack3_"+str(i))
     sgs_builder.buildOperatorCode("SGS_unpack3",tflite.BuiltinOperator.BuiltinOperator().UNPACK)
     unpack_optionts3 = sgs_builder.createUnpackOptions(10, 1)
-    sgs_builder.buildOperator("SGS_unpack3",transpose_out_tensors,unpack_out_tensors3,tflite.BuiltinOptions.BuiltinOptions().UnpackOptions,unpack_optionts3)
+    sgs_builder.buildOperator("SGS_unpack3",reshape_out_tensors3,unpack_out_tensors3,tflite.BuiltinOptions.BuiltinOptions().UnpackOptions,unpack_optionts3)
 
     unpack30_multiv2_out_tensors = []
     unpack30_multiv2_in_tensors = []
@@ -591,7 +581,8 @@ def buildGraph(sgs_builder,model_config):
     sgs_builder.buildOperator("SGS_unpack39_multiv2_mulanchor3_addanchor13",unpack39_multiv2_mulanchor3_addanchor13_in_tensors,unpack39_multiv2_mulanchor3_addanchor13_out_tensors)
 
 
-    concat_in_tensors = []
+    concat_in_tensors = []
+
     concat_in_tensors.append("unpack30_multiv2_mulanchor2_addanchor4_tensor")
     concat_in_tensors.append("unpack31_multiv2_mulanchor3_addanchor5_tensor")
     concat_in_tensors.append("unpack32_multiv2_mulanchor2_addanchor6_tensor")
@@ -647,6 +638,7 @@ def buildGraph(sgs_builder,model_config):
     sgs_builder.buildTensor(model_config["out_shapes"][4],"detectionIndex")
     nms_out_tensors.append("detectionIndex")
     cus_code = 'TFLite_Detection_NMS'
+
     sgs_builder.buildOperatorCode("SGS_nms",tflite.BuiltinOperator.BuiltinOperator().CUSTOM,cus_code)
     '''
     1.标识输入tensor 和 coordinate score confidence class facecoordinate 对应关系
@@ -674,7 +666,7 @@ def buildGraph(sgs_builder,model_config):
                    (b"output_detection_boxes_index_idx",4,"int"),
                    (b"nms",0,"float"),
                    (b"clip",0,"float"),
-                   (b"max_detections",100,"int"),
+                   (b"max_detections",MAX_DETECTIONS,"int"),
                    (b"max_classes_per_detection",1,"int"),
                    (b"detections_per_class",1,"int"),
                    (b"num_classes",1,"int"),
@@ -683,7 +675,7 @@ def buildGraph(sgs_builder,model_config):
                    (b"num_classes_with_background",1,"int"),
                    (b"nms_score_threshold",0.200000003,"float"),
                    (b"nms_iou_threshold",0.300000012,"float")]
-    options = sgs_builder.createFlexBuffer( sgs_builder.lib, cus_options)
+    options = sgs_builder.createFlexBuffer(cus_options)
     sgs_builder.buildOperator("SGS_nms",nms_in_tensors,nms_out_tensors,None,None,options)
 
     network_out_tensors = []
@@ -696,7 +688,10 @@ def buildGraph(sgs_builder,model_config):
 
     sgs_builder.subgraphs.append( sgs_builder.buildSubGraph(model_config["input"],network_out_tensors,model_config["name"]))
     sgs_builder.model = sgs_builder.createModel(3,sgs_builder.operator_codes,sgs_builder.subgraphs,model_config["name"],sgs_builder.buffers)
-    file_identifier = b'TFL3'
+    if getIPUVersion() == 'M6' or getIPUVersion() == 'I6E':
+        file_identifier = b'TFL3'
+    else:
+        file_identifier = b'SIM2'
     sgs_builder.builder.Finish(sgs_builder.model, file_identifier)
     buf = sgs_builder.builder.Output()
     return buf
@@ -774,9 +769,9 @@ def anchors_generate(h, w, fda_anchors14):
 def get_postprocess():
     model_config = {"name":"caffe_fda_1280x720",
           "input" : ['283','276','290'],
-          "input_shape" : [[1,18760,1,4],[1,18760,1,2],[1,18760,1,10]],
+          "input_shape" : [[1,1,4,18760],[1,1,2,18760],[1,1,10,18760]],
           "shape" : [1,18760],
-          "out_shapes" : [[1,100,4],[1,100],[1,100],[1],[1,100],[1,18760,10]],
+          "out_shapes" : [[1,MAX_DETECTIONS,4],[1,MAX_DETECTIONS],[1,MAX_DETECTIONS],[1],[1,MAX_DETECTIONS],[1,18760,10]],
           "input_hw": [720., 1280.]}
 
     fda = TFLitePostProcess()
@@ -786,6 +781,7 @@ def get_postprocess():
         f.write(fda_buf)
         f.close()
     print("\nWell Done!" + outfilename  + " generated!\n")
+    return outfilename
 
 def model_postprocess():
     return get_postprocess()

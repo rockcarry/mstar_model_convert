@@ -6,4 +6,6 @@ class Padding(object):
     SAME = 0
     VALID = 1
     CAFFE = 2
+    ONNXINSIDE = 3
+    ONNXOUTSIDE = 4
 

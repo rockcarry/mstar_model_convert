@@ -2,11 +2,12 @@ import numpy as np
 from TFLitePostProcess import *
 from  anchor_param import *
 from third_party import tflite
+from mace.python.tools.convert_util import getIPUVersion
 
 def BoxDecoder(sgs_builder,model_config,unpack_output_tensors):
-    if 'TOP_DIR' in os.environ:
-        Project_path = os.environ['TOP_DIR']
-        anchors = np.load(os.path.join(Project_path, "SRC/Tool/Scripts/postprocess/", "anchors_ssd_tf.npy"))
+    if 'IPU_TOOL' in os.environ:
+        Project_path = os.environ['IPU_TOOL']
+        anchors = np.load(os.path.join(Project_path, "Scripts/postprocess/", "anchors_ssd_tf.npy"))
     elif 'SGS_IPU_DIR' in os.environ:
         Project_path = os.environ['SGS_IPU_DIR']
         anchors = np.load(os.path.join(Project_path, "Scripts/postprocess/", "anchors_ssd_tf.npy"))
@@ -85,7 +86,7 @@ def buildGraph(sgs_builder,model_config):
     cus_code = 'PostProcess_Max'
     cus_options = [(b"scores_lengh",21,"int"),
                    (b"skip",1,"int")]
-    options = sgs_builder.createFlexBuffer( sgs_builder.lib, cus_options)
+    options = sgs_builder.createFlexBuffer(cus_options)
     sgs_builder.buildOperatorCode("PostProcess_Max",tflite.BuiltinOperator.BuiltinOperator().CUSTOM,cus_code)
     sgs_builder.buildOperator("PostProcess_Max",pp_max_in_tensors,pp_max_output_tensors,None,None,options)
 
@@ -142,13 +143,16 @@ def buildGraph(sgs_builder,model_config):
                    (b"num_classes_with_background",1,"int"),
                    (b"nms_score_threshold",9.99999994e-09,"float"),
                    (b"nms_iou_threshold",0.600000024,"float")]
-    options = sgs_builder.createFlexBuffer( sgs_builder.lib, cus_options)
+    options = sgs_builder.createFlexBuffer(cus_options)
     sgs_builder.buildOperator("SGS_nms",nms_in_tensors,nms_out_tensors,None,None,options)
 
 
     sgs_builder.subgraphs.append( sgs_builder.buildSubGraph(model_config["input"],nms_out_tensors,model_config["name"]))
     sgs_builder.model = sgs_builder.createModel(3,sgs_builder.operator_codes,sgs_builder.subgraphs,model_config["name"],sgs_builder.buffers)
-    file_identifier = b'TFL3'
+    if getIPUVersion() == 'M6' or getIPUVersion() == 'I6E':
+        file_identifier = b'TFL3'
+    else:
+        file_identifier = b'SIM2'
     sgs_builder.builder.Finish(sgs_builder.model, file_identifier)
     buf = sgs_builder.builder.Output()
     return buf
@@ -167,7 +171,7 @@ def get_postprocess():
         f.write(ssd_buf)
         f.close()
     print("\nWell Done! " + outfilename  + " generated!\n")
+    return outfilename
 
 def model_postprocess():
     return get_postprocess()
-

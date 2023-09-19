@@ -16,6 +16,7 @@ __all__ = ['caffe_fda_postprocess',
            'ssd_mobilenet_v1_index_postprocess',
            'yolo_v3_6_postprocess',
            'yolo_v3_7_postprocess',
+           'yolo_v3_7_2_postprocess',
            'siamese_postprocess',
            'ssd352_288_mobilenetv1_025_6_classes_sigmoid_anchor800_postprocess',
            'ssdlite_mobilenet_v2_postprocess',
@@ -27,4 +28,3 @@ __all__ = ['caffe_fda_postprocess',
            'yolo_v3_tiny_postprocess',
            'caffe_lstm_unroll',
            'onnx_lstm_unroll']
-

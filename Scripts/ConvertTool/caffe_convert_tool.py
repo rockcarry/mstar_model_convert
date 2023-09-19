@@ -39,13 +39,15 @@ def convert_from_caffemodel(model_file,
                                        output_file,
                                        input_pack_model_arrays,
                                        output_pack_model_arrays,
-                                       rawdata=False):
+                                       input_name_format_map,
+                                       is_decrypt=False):
 
-    if not os.path.exists(model_file):
-        raise NameError('Input graph file {} does not exist!'.format(model_file))
+    if type(model_file) is str:
+        if  not os.path.exists(model_file):
+            raise NameError('Input graph file {} does not exist!'.format(model_file))
 
-    if not os.path.exists(weight_file):
-        raise NameError('Input weight file {} does not exist!'.format(weight_file))
+        if not os.path.exists(weight_file):
+            raise NameError('Input weight file {} does not exist!'.format(weight_file))
 
     option = cvt.ConverterOption()
     input_node_names = input_nodes.split(',')
@@ -80,10 +82,11 @@ def convert_from_caffemodel(model_file,
     converter = caffe_converter.CaffeConverter(option,
                                                model_file,
                                                weight_file,
-                                               rawdata)
+                                               input_name_format_map,
+                                               is_decrypt)
 
     output_graph_def,input_name_shape_map = converter.run()
-    from mace.python.tools.caffe import SGSModel_converter
+    from mace.python.tools import SGSModel_converter_from_Mace
     if DUMP_MACE:
       file_name = output_dir.strip("./").split(".")[0]
       f = open(file_name+'_mace.txt', 'w')
@@ -91,5 +94,11 @@ def convert_from_caffemodel(model_file,
       six.print_(output_graph_def)
       f.close()
       sys.exit(1)
-    convertSGS = SGSModel_converter.ConvertSGSModel(output_graph_def, input_node_names, input_name_shape_map, output_node_names, output_dir, input_pack_model_names, output_pack_model_names)
+    #from mace.python.tools.caffe import SGSModel_converter
+    #convertSGS = SGSModel_converter.ConvertSGSModel(output_graph_def, input_node_names, input_name_shape_map, output_node_names, output_dir, input_pack_model_names, output_pack_model_names)
+
+    convertSGS = SGSModel_converter_from_Mace.ConvertSGSModel(output_graph_def, input_node_names, output_node_names, output_dir,
+                                                None, None, None, input_name_shape_map, None,
+                                                input_pack_model_names, output_pack_model_names, platform='caffe')
+
     return convertSGS

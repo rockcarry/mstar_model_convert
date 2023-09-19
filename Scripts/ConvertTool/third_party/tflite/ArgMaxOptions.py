@@ -3,16 +3,26 @@
 # namespace: tflite
 
 from third_party.python import flatbuffers
+from third_party.python.flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class ArgMaxOptions(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsArgMaxOptions(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = ArgMaxOptions()
         x.Init(buf, n + offset)
         return x
+
+    @classmethod
+    def GetRootAsArgMaxOptions(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
+    @classmethod
+    def ArgMaxOptionsBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x53\x49\x4D\x32", size_prefixed=size_prefixed)
 
     # ArgMaxOptions
     def Init(self, buf, pos):
@@ -26,5 +36,11 @@ class ArgMaxOptions(object):
         return 0
 
 def ArgMaxOptionsStart(builder): builder.StartObject(1)
+def Start(builder):
+    return ArgMaxOptionsStart(builder)
 def ArgMaxOptionsAddOutputType(builder, outputType): builder.PrependInt8Slot(0, outputType, 0)
+def AddOutputType(builder, outputType):
+    return ArgMaxOptionsAddOutputType(builder, outputType)
 def ArgMaxOptionsEnd(builder): return builder.EndObject()
+def End(builder):
+    return ArgMaxOptionsEnd(builder)

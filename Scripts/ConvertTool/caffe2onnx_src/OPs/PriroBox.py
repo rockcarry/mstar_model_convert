@@ -19,7 +19,7 @@ from typing import *
 import ctypes
 import caffe2onnx_src.c2oObject as Node
 import math
-from mace.python.tools.caffe import SGSModel_genAnchors
+from mace.python.tools.sgs_caffe import SGSModel_genAnchors
 import pdb
 
 def create_custom_node(type_name: Text,

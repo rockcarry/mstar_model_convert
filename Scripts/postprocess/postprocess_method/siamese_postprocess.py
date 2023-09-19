@@ -4,6 +4,7 @@ from third_party import tflite
 from itertools import product as product
 from math import ceil
 import pdb
+from mace.python.tools.convert_util import getIPUVersion
 
 def buildGraph(sgs_builder,config):
     """
@@ -35,12 +36,15 @@ def buildGraph(sgs_builder,config):
     cus_code = 'cross_correlation'
     sgs_builder.buildOperatorCode("cross_correlation",tflite.BuiltinOperator.BuiltinOperator().CUSTOM,cus_code)
     cus_options = [(b"bias",-2.1483638286590576,"float")]
-    options = sgs_builder.createFlexBuffer( sgs_builder.lib, cus_options)
+    options = sgs_builder.createFlexBuffer(cus_options)
     sgs_builder.buildOperator("cross_correlation",cc_in_tensors,cc_out_tensors,None,None,options)
 
     sgs_builder.subgraphs.append( sgs_builder.buildSubGraph(config["input"],cc_out_tensors,config["name"]))
     sgs_builder.model = sgs_builder.createModel(3,sgs_builder.operator_codes,sgs_builder.subgraphs,config["name"],sgs_builder.buffers)
-    file_identifier = b'TFL3'
+    if getIPUVersion() == 'M6' or getIPUVersion() == 'I6E':
+        file_identifier = b'TFL3'
+    else:
+        file_identifier = b'SIM2'
     sgs_builder.builder.Finish(sgs_builder.model, file_identifier)
     buf = sgs_builder.builder.Output()
     return buf
@@ -60,6 +64,7 @@ def get_postprocess():
         f.write(siamese_buf)
         f.close()
     print("\nWell Done!" + outfilename  + " generated!\n")
+    return outfilename
 
 def model_postprocess():
     return get_postprocess()

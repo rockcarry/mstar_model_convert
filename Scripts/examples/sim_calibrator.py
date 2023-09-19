@@ -11,9 +11,9 @@ from calibrator_custom import utils
 
 
 class Net(calibrator_custom.SIM_Calibrator):
-    def __init__(self, model_path, input_config):
+    def __init__(self, model_path, input_config, core_mode, log):
         super().__init__()
-        self.model = calibrator_custom.calibrator(model_path, input_config)
+        self.model = calibrator_custom.calibrator(model_path, input_config, work_mode=core_mode, show_log=log)
 
     def forward(self, x):
         in_details = self.model.get_input_details()
@@ -39,6 +39,10 @@ def arg_parse():
     parser.add_argument('--quant_level', type=str, default='L5',
                         choices=['L1', 'L2', 'L3', 'L4', 'L5'],
                         help='Indicate Quantilization level. The higher the level, the slower the speed and the higher the accuracy.')
+    if calibrator_custom.utils.VERSION[:2] in ['S6']:
+        parser.add_argument('--work_mode', type=str, default=None,
+                            choices=['single_core', 'multi_core'],
+                            help='Indicate calibrator work_mode.')
     parser.add_argument('--mixed_precision', type=str, default='sp',
                         help='Indicate strategy of mixed precision.')
     parser.add_argument('--quant_file', type=str, default=None,
@@ -46,6 +50,7 @@ def arg_parse():
     parser.add_argument('-n', '--preprocess', type=str, required=True,
                         help='Name of model to select image preprocess method')
     parser.add_argument('--num_process', default=10, type=int, help='Amount of processes run at same time.')
+    parser.add_argument('--show_log', default=False, action='store_true', help='Show log on screen.')
     parser.add_argument('-o', '--output', default=None, type=str, help='Output path for fixed model.')
 
     return parser.parse_args()
@@ -61,7 +66,11 @@ def main():
     quant_file = args.quant_file
     model_name = args.preprocess
     num_subsets = args.num_process
+    log = args.show_log
     output = args.output
+    work_mode = None
+    if calibrator_custom.utils.VERSION[:2] in ['S6'] and args.work_mode is not None:
+        work_mode = args.work_mode
 
     if not os.path.exists(model_path):
         raise FileNotFoundError('No such {} model'.format(model_path))
@@ -69,7 +78,7 @@ def main():
     if not os.path.exists(input_config):
         raise FileNotFoundError('input_config.ini file not found.')
 
-    net = Net(model_path, input_config)
+    net = Net(model_path, input_config, work_mode, log)
     print(net)
     if ':' in image_path:
         dir_name = image_path.split(':')[0]

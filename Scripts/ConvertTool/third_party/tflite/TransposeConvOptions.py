@@ -3,16 +3,26 @@
 # namespace: tflite
 
 from third_party.python import flatbuffers
+from third_party.python.flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class TransposeConvOptions(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsTransposeConvOptions(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = TransposeConvOptions()
         x.Init(buf, n + offset)
         return x
+
+    @classmethod
+    def GetRootAsTransposeConvOptions(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
+    @classmethod
+    def TransposeConvOptionsBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x53\x49\x4D\x32", size_prefixed=size_prefixed)
 
     # TransposeConvOptions
     def Init(self, buf, pos):
@@ -68,11 +78,29 @@ class TransposeConvOptions(object):
         return 0
 
 def TransposeConvOptionsStart(builder): builder.StartObject(7)
+def Start(builder):
+    return TransposeConvOptionsStart(builder)
 def TransposeConvOptionsAddPadding(builder, padding): builder.PrependInt8Slot(0, padding, 0)
+def AddPadding(builder, padding):
+    return TransposeConvOptionsAddPadding(builder, padding)
 def TransposeConvOptionsAddStrideW(builder, strideW): builder.PrependInt32Slot(1, strideW, 0)
+def AddStrideW(builder, strideW):
+    return TransposeConvOptionsAddStrideW(builder, strideW)
 def TransposeConvOptionsAddStrideH(builder, strideH): builder.PrependInt32Slot(2, strideH, 0)
+def AddStrideH(builder, strideH):
+    return TransposeConvOptionsAddStrideH(builder, strideH)
 def TransposeConvOptionsAddPaddingLeft(builder, paddingLeft): builder.PrependInt32Slot(3, paddingLeft, 0)
+def AddPaddingLeft(builder, paddingLeft):
+    return TransposeConvOptionsAddPaddingLeft(builder, paddingLeft)
 def TransposeConvOptionsAddPaddingRight(builder, paddingRight): builder.PrependInt32Slot(4, paddingRight, 0)
+def AddPaddingRight(builder, paddingRight):
+    return TransposeConvOptionsAddPaddingRight(builder, paddingRight)
 def TransposeConvOptionsAddPaddingTop(builder, paddingTop): builder.PrependInt32Slot(5, paddingTop, 0)
+def AddPaddingTop(builder, paddingTop):
+    return TransposeConvOptionsAddPaddingTop(builder, paddingTop)
 def TransposeConvOptionsAddPaddingBottom(builder, paddingBottom): builder.PrependInt32Slot(6, paddingBottom, 0)
+def AddPaddingBottom(builder, paddingBottom):
+    return TransposeConvOptionsAddPaddingBottom(builder, paddingBottom)
 def TransposeConvOptionsEnd(builder): return builder.EndObject()
+def End(builder):
+    return TransposeConvOptionsEnd(builder)

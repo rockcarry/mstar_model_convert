@@ -40,7 +40,7 @@ def get_image(img_path, resizeH=224, resizeW=224, resizeC=3, norm=True, meanB=10
         img_norm = cv2.cvtColor(img_norm, cv2.COLOR_BGR2RGB)
     if nchw:
         # NCHW
-        img_norm = np.transpose(img_norm.reshape(1, resizeW, resizeH, -1), axes=(0, 3, 1, 2))
+        img_norm = np.transpose(img_norm, axes=(2, 0, 1))
     return np.expand_dims(img_norm, 0)
 
 

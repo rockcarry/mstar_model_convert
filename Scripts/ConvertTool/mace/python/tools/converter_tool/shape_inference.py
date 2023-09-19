@@ -181,6 +181,11 @@ class ShapeInference(object):
         input_shape = self._output_shape_cache[op.input[0]]
         output_shape = np.zeros_like(input_shape)
         filter_shape = self._output_shape_cache[op.input[1]]
+        arg = op.arg
+        for i in six.moves.range(len(arg)):
+          name = arg[i].name
+          if name == 'num_output':
+            num_output = arg[i].i
 
         paddings = ConverterUtil.get_arg(op,
                                          MaceKeyword.mace_padding_values_str).ints  # noqa
@@ -195,14 +200,18 @@ class ShapeInference(object):
 
         group_arg = ConverterUtil.get_arg(op,
                                           MaceKeyword.mace_group_str)
+
         output_shape[0] = input_shape[0]
         if ConverterUtil.data_format(op) == DataFormat.NCHW \
                 and ConverterUtil.filter_format(self._net) == FilterFormat.OIHW:  # noqa
             # filter format: IOHW
             if op.type == MaceOp.DepthwiseDeconv2d.name:
-                output_shape[1] = filter_shape[0] * filter_shape[1]
+                    output_shape[1] = filter_shape[0] * filter_shape[1]
             else:
-                output_shape[1] = filter_shape[0]
+                if group_arg != None and group_arg.i > 1 :
+                    output_shape[1] = num_output
+                else:
+                    output_shape[1] = filter_shape[0]
             output_shape[2] = int(
                 round_func((input_shape[2] - 1) * strides[0] +
                            (filter_shape[2] - 1) * (dilations[0] - 1) +
@@ -264,12 +273,22 @@ class ShapeInference(object):
     def infer_shape_fully_connected(self, op):
         input_shape = self._output_shape_cache[op.input[0]]
         weight_shape = self._output_shape_cache[op.input[1]]
+        axis = ConverterUtil.get_arg(op, MaceKeyword.mace_axis_str).i
         if ConverterUtil.data_format(op) == DataFormat.NCHW:
           if len(input_shape) == 4:
             output_shape = [input_shape[0], weight_shape[0], 1, 1]
           else:
-            output_shape = copy.deepcopy(input_shape)
-            output_shape[-1] = weight_shape[0]
+            innershape = 1
+            for i in six.moves.range(len(input_shape)-axis):
+               innershape *= input_shape[axis+i]
+            if input_shape[-1] != innershape:
+               output_shape = []
+               for i in six.moves.range(len(input_shape)-axis):
+                  output_shape.append(input_shape[i])
+               output_shape[axis] = weight_shape[0]
+            else:
+               output_shape = copy.deepcopy(input_shape)
+               output_shape[-1] = weight_shape[0]
         else:
             mace_check(False, "format %s is not supported"
                        % ConverterUtil.data_format(op))
@@ -280,6 +299,8 @@ class ShapeInference(object):
         output_shape = self._output_shape_cache[op.input[0]]
         input1_shape = self._output_shape_cache[op.input[1]]
         axis = ConverterUtil.get_arg(op, MaceKeyword.mace_axis_str).i
+        if axis < 0:
+            axis = len(output_shape) + axis
         for i in range(len(output_shape)):
             if i >= axis:
                 output_shape[i] = input1_shape[i]
@@ -321,7 +342,86 @@ class ShapeInference(object):
         num_prior = len(aspect_ratio) * 2 + 1
         output_shape[2] = num_prior * input_h * input_w * 4
         self.add_output_shape(op, [output_shape])
+
     def infer_shape_reshape(self, op):
+     if ConverterUtil.get_arg(op, MaceKeyword.mace_end_axis_str) is not None: #flatten
+        output_shape = []
+        axis = ConverterUtil.get_arg(op, MaceKeyword.mace_axis_str).i
+        end_axis = ConverterUtil.get_arg(op, MaceKeyword.mace_end_axis_str).i  # noqa
+        end_axis = end_axis if end_axis > 0 else end_axis + len(
+            list(self._output_shape_cache[op.input[0]]))
+        dim = 1
+        for i in range(0, axis):
+            output_shape.append(self._output_shape_cache[op.input[0]][i])
+        for i in six.moves.range(axis, end_axis + 1):
+            dim *= self._output_shape_cache[op.input[0]][i]
+        output_shape.append(-1)
+        for i in six.moves.range(end_axis + 1, len(
+                list(self._output_shape_cache[op.input[0]]))):
+            output_shape.append(self._output_shape_cache[op.input[0]][i])
+        output_shape[axis] = dim
+        self.add_output_shape(op, [output_shape])
+     else: #reshape
+        input_shape_dims = len(list(self._output_shape_cache[op.input[0]]))
+        input_start_axis = ConverterUtil.get_arg(op, 'reshape_' + MaceKeyword.mace_axis_str).i
+        start_axis = input_start_axis if input_start_axis >= 0 \
+                    else (input_shape_dims + input_start_axis + 1)
+        num_axes = ConverterUtil.get_arg(op, MaceKeyword.mace_num_axes_str).i
+        end_axis = input_shape_dims if num_axes == -1 \
+                    else (start_axis + num_axes)
+        dim = ConverterUtil.get_arg(op, MaceKeyword.mace_dim_str).ints
+
+        product = input_size = 1
+        copy_axes = []
+        inferred_axis = -1
+        top_shape_index = 0
+        bottom_shape_index = 0
+        copy_axis_index = []
+        output_shape = []
+
+        for i in six.moves.range(input_shape_dims):
+            input_size *= self._output_shape_cache[op.input[0]][i]
+
+        for i in six.moves.range(start_axis):
+            output_shape.append(self._output_shape_cache[op.input[0]][i])
+            top_shape_index += 1
+            bottom_shape_index += 1
+            product *= self._output_shape_cache[op.input[0]][i]
+
+        for i in six.moves.range(len(dim)):
+            if dim[i] == 0:
+                copy_axes.append(top_shape_index)
+                copy_axis_index.append(i)
+                output_shape.append(1)
+                #product *= self._output_shape_cache[op.input[0]][top_shape_index]
+                top_shape_index += 1
+            elif dim[i] == -1:
+                inferred_axis = top_shape_index
+                output_shape.append(1)
+                top_shape_index += 1
+            else:
+                output_shape.append(dim[i])
+                product *= dim[i]
+                top_shape_index += 1
+
+        bottom_shape_index += num_axes
+        for i in six.moves.range(end_axis, input_shape_dims):
+            output_shape.append(self._output_shape_cache[op.input[0]][bottom_shape_index])
+            product *= self._output_shape_cache[op.input[0]][bottom_shape_index]
+            top_shape_index += 1
+            bottom_shape_index += 1
+
+        if copy_axes != []:
+          for i in six.moves.range(len(copy_axes)):
+            mace_check (input_shape_dims > (start_axis + copy_axis_index[i]), \
+                "new shape contains a 0, but there was no corresponding bottom axis to copy Please check {} args"\
+                .format(op.name))
+            output_shape[copy_axes[i]] = self._output_shape_cache[op.input[0]][copy_axes[i]]
+            product *= self._output_shape_cache[op.input[0]][copy_axes[i]]
+        if inferred_axis != -1:
+            output_shape[inferred_axis] = int(input_size / product)
+        self.add_output_shape(op, [output_shape])
+        '''
         if ConverterUtil.get_arg(op, MaceKeyword.mace_dim_str) is not None:
             dim = ConverterUtil.get_arg(op, MaceKeyword.mace_dim_str).ints
             output_shape = list(dim)
@@ -359,7 +459,7 @@ class ShapeInference(object):
                 output_shape.append(self._output_shape_cache[op.input[0]][i])
             output_shape[axis] = dim
             self.add_output_shape(op, [output_shape])
-
+        '''
     def infer_shape_ArgMax(self, op):
         output_shape = list(self._output_shape_cache[op.input[0]])
         axis = ConverterUtil.get_arg(op, 'axis').i

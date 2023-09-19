@@ -3,16 +3,26 @@
 # namespace: tflite
 
 from third_party.python import flatbuffers
+from third_party.python.flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class UnpackOptions(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsUnpackOptions(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = UnpackOptions()
         x.Init(buf, n + offset)
         return x
+
+    @classmethod
+    def GetRootAsUnpackOptions(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
+    @classmethod
+    def UnpackOptionsBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x53\x49\x4D\x32", size_prefixed=size_prefixed)
 
     # UnpackOptions
     def Init(self, buf, pos):
@@ -33,6 +43,14 @@ class UnpackOptions(object):
         return 0
 
 def UnpackOptionsStart(builder): builder.StartObject(2)
+def Start(builder):
+    return UnpackOptionsStart(builder)
 def UnpackOptionsAddNum(builder, num): builder.PrependInt32Slot(0, num, 0)
+def AddNum(builder, num):
+    return UnpackOptionsAddNum(builder, num)
 def UnpackOptionsAddAxis(builder, axis): builder.PrependInt32Slot(1, axis, 0)
+def AddAxis(builder, axis):
+    return UnpackOptionsAddAxis(builder, axis)
 def UnpackOptionsEnd(builder): return builder.EndObject()
+def End(builder):
+    return UnpackOptionsEnd(builder)

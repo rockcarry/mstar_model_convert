@@ -3,16 +3,26 @@
 # namespace: tflite
 
 from third_party.python import flatbuffers
+from third_party.python.flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class RNNOptions(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsRNNOptions(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = RNNOptions()
         x.Init(buf, n + offset)
         return x
+
+    @classmethod
+    def GetRootAsRNNOptions(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
+    @classmethod
+    def RNNOptionsBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x53\x49\x4D\x32", size_prefixed=size_prefixed)
 
     # RNNOptions
     def Init(self, buf, pos):
@@ -25,6 +35,22 @@ class RNNOptions(object):
             return self._tab.Get(flatbuffers.number_types.Int8Flags, o + self._tab.Pos)
         return 0
 
-def RNNOptionsStart(builder): builder.StartObject(1)
+    # RNNOptions
+    def AsymmetricQuantizeInputs(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        if o != 0:
+            return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
+        return False
+
+def RNNOptionsStart(builder): builder.StartObject(2)
+def Start(builder):
+    return RNNOptionsStart(builder)
 def RNNOptionsAddFusedActivationFunction(builder, fusedActivationFunction): builder.PrependInt8Slot(0, fusedActivationFunction, 0)
+def AddFusedActivationFunction(builder, fusedActivationFunction):
+    return RNNOptionsAddFusedActivationFunction(builder, fusedActivationFunction)
+def RNNOptionsAddAsymmetricQuantizeInputs(builder, asymmetricQuantizeInputs): builder.PrependBoolSlot(1, asymmetricQuantizeInputs, 0)
+def AddAsymmetricQuantizeInputs(builder, asymmetricQuantizeInputs):
+    return RNNOptionsAddAsymmetricQuantizeInputs(builder, asymmetricQuantizeInputs)
 def RNNOptionsEnd(builder): return builder.EndObject()
+def End(builder):
+    return RNNOptionsEnd(builder)

@@ -33,13 +33,13 @@ def get_image(img_path, resizeH=224, resizeW=224, resizeC=3, norm=True, meanB=11
     if norm is True:
         normalized_image = (cropped_image - [meanB, meanG, meanR]) / std
     else:
-        normalized_image = cropped_image
+        normalized_image = np.round(cropped_image).astype('uint8')
 
     if rgb is True:
         normalized_image = cv2.cvtColor(normalized_image, cv2.COLOR_BGR2RGB)
 
     if nchw is True:
-        normalized_image = np.transpose(normalized_image.reshape(resizeW, resizeH, -1), axes=(2, 0, 1))
+        normalized_image = np.transpose(normalized_image, axes=(2, 0, 1))
     return np.expand_dims(normalized_image, 0)
 
 

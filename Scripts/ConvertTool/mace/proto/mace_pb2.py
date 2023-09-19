@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='mace',
   syntax='proto2',
   serialized_options=_b('H\003'),
-  serialized_pb=_b('\n\x15mace/proto/mace.proto\x12\x04mace\"\xc7\x02\n\x0b\x43onstTensor\x12\x0c\n\x04\x64ims\x18\x01 \x03(\x03\x12+\n\tdata_type\x18\x02 \x01(\x0e\x32\x0e.mace.DataType:\x08\x44T_FLOAT\x12\x16\n\nfloat_data\x18\x03 \x03(\x02\x42\x02\x10\x01\x12\x16\n\nint32_data\x18\x04 \x03(\x05\x42\x02\x10\x01\x12\x0c\n\x04name\x18\x05 \x01(\t\x12\x0e\n\x06offset\x18\x06 \x01(\x03\x12\x11\n\tdata_size\x18\x07 \x01(\x03\x12\r\n\x05scale\x18\x08 \x01(\x02\x12\x12\n\nzero_point\x18\t \x01(\x05\x12\x0e\n\x06minval\x18\n \x01(\x02\x12\x0e\n\x06maxval\x18\x0b \x01(\x02\x12\x18\n\tquantized\x18\x0c \x01(\x08:\x05\x66\x61lse\x12.\n\x0b\x64\x61ta_format\x18\r \x01(\x0e\x32\x10.mace.DataFormat:\x07\x44T_NCHW\x12\x0f\n\x07node_id\x18\x64 \x01(\r\"W\n\x08\x41rgument\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\t\n\x01\x66\x18\x02 \x01(\x02\x12\t\n\x01i\x18\x03 \x01(\x03\x12\t\n\x01s\x18\x04 \x01(\x0c\x12\x0e\n\x06\x66loats\x18\x05 \x03(\x02\x12\x0c\n\x04ints\x18\x06 \x03(\x03\"1\n\tNodeInput\x12\x0f\n\x07node_id\x18\x01 \x01(\x05\x12\x13\n\x0boutput_port\x18\x02 \x01(\x05\"\x1b\n\x0bOutputShape\x12\x0c\n\x04\x64ims\x18\x01 \x03(\x03\"[\n\x16QuantizeActivationInfo\x12\r\n\x05scale\x18\x01 \x01(\x02\x12\x12\n\nzero_point\x18\x02 \x01(\x05\x12\x0e\n\x06minval\x18\x03 \x01(\x02\x12\x0e\n\x06maxval\x18\x04 \x01(\x02\"\xfe\x02\n\x0bOperatorDef\x12\r\n\x05input\x18\x01 \x03(\t\x12\x0e\n\x06output\x18\x02 \x03(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\x12\x0c\n\x04type\x18\x04 \x01(\t\x12\x13\n\x0b\x64\x65vice_type\x18\x05 \x01(\x05\x12\x1b\n\x03\x61rg\x18\x06 \x03(\x0b\x32\x0e.mace.Argument\x12\'\n\x0coutput_shape\x18\x07 \x03(\x0b\x32\x11.mace.OutputShape\x12#\n\x0boutput_type\x18\x08 \x03(\x0e\x32\x0e.mace.DataType\x12\x33\n\rquantize_info\x18\t \x03(\x0b\x32\x1c.mace.QuantizeActivationInfo\x12\x0e\n\x06mem_id\x18\n \x03(\x05\x12\x0f\n\x07node_id\x18\x64 \x01(\r\x12\r\n\x05op_id\x18\x65 \x01(\r\x12\x0f\n\x07padding\x18\x66 \x01(\r\x12#\n\nnode_input\x18g \x03(\x0b\x32\x0f.mace.NodeInput\x12\x19\n\x11out_max_byte_size\x18h \x03(\x05\"\xbd\x01\n\x0fInputOutputInfo\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07node_id\x18\x02 \x01(\x05\x12\x0c\n\x04\x64ims\x18\x03 \x03(\x05\x12\x15\n\rmax_byte_size\x18\x04 \x01(\x05\x12+\n\tdata_type\x18\x05 \x01(\x0e\x32\x0e.mace.DataType:\x08\x44T_FLOAT\x12\x16\n\x0b\x64\x61ta_format\x18\x06 \x01(\x05:\x01\x31\x12\r\n\x05scale\x18\x07 \x01(\x02\x12\x12\n\nzero_point\x18\x08 \x01(\x05\"\xec\x01\n\x06NetDef\x12\x1d\n\x02op\x18\x01 \x03(\x0b\x32\x11.mace.OperatorDef\x12\x1b\n\x03\x61rg\x18\x02 \x03(\x0b\x32\x0e.mace.Argument\x12\"\n\x07tensors\x18\x03 \x03(\x0b\x32\x11.mace.ConstTensor\x12+\n\tdata_type\x18\x04 \x01(\x0e\x32\x0e.mace.DataType:\x08\x44T_FLOAT\x12)\n\ninput_info\x18\x64 \x03(\x0b\x32\x15.mace.InputOutputInfo\x12*\n\x0boutput_info\x18\x65 \x03(\x0b\x32\x15.mace.InputOutputInfo*a\n\x08\x44\x61taType\x12\x0e\n\nDT_INVALID\x10\x00\x12\x0c\n\x08\x44T_FLOAT\x10\x01\x12\x0c\n\x08\x44T_UINT8\x10\x02\x12\x0b\n\x07\x44T_HALF\x10\x03\x12\x0c\n\x08\x44T_INT32\x10\x04\x12\x0e\n\nDT_FLOAT16\x10\x05*3\n\nDataFormat\x12\x0b\n\x07\x44T_NONE\x10\x00\x12\x0b\n\x07\x44T_NCHW\x10\x01\x12\x0b\n\x07\x44T_NHWC\x10\x02*;\n\nMemoryType\x12\x0e\n\nCPU_BUFFER\x10\x00\x12\x0e\n\nGPU_BUFFER\x10\x01\x12\r\n\tGPU_IMAGE\x10\x02\x42\x02H\x03')
+  serialized_pb=_b('\n\x15mace/proto/mace.proto\x12\x04mace\"\x1d\n\x0bInt32Vector\x12\x0e\n\x06values\x18\x01 \x03(\x05\"\x1e\n\x0cUint16Vector\x12\x0e\n\x06values\x18\x01 \x03(\r\"\x1d\n\x0bUint8Vector\x12\x0e\n\x06values\x18\x01 \x03(\r\"\x85\x01\n\x11SparseIndexVector\x12$\n\ts32Vector\x18\x01 \x01(\x0b\x32\x11.mace.Int32Vector\x12%\n\tu16Vector\x18\x02 \x01(\x0b\x32\x12.mace.Uint16Vector\x12#\n\x08u8Vector\x18\x03 \x01(\x0b\x32\x11.mace.Uint8Vector\"\xe8\x01\n\x11\x44imensionMetadata\x12#\n\x06\x66ormat\x18\x01 \x01(\x0e\x32\x13.mace.DimensionType\x12\x12\n\ndense_size\x18\x02 \x01(\x05\x12/\n\x0e\x61rray_segments\x18\x03 \x01(\x0b\x32\x17.mace.SparseIndexVector\x12.\n\rarray_indices\x18\x04 \x01(\x0b\x32\x17.mace.SparseIndexVector\x12\x1b\n\x13\x41rrayIndicesVecType\x18\x05 \x01(\t\x12\x1c\n\x14\x41rraySegmentsVecType\x18\x06 \x01(\t\"o\n\x12SparsityParameters\x12\x17\n\x0ftraversal_order\x18\x01 \x03(\x05\x12\x11\n\tblock_map\x18\x02 \x03(\x05\x12-\n\x0c\x64im_metadata\x18\x03 \x03(\x0b\x32\x17.mace.DimensionMetadata\"\xad\x03\n\x0b\x43onstTensor\x12\x0c\n\x04\x64ims\x18\x01 \x03(\x03\x12+\n\tdata_type\x18\x02 \x01(\x0e\x32\x0e.mace.DataType:\x08\x44T_FLOAT\x12\x16\n\nfloat_data\x18\x03 \x03(\x02\x42\x02\x10\x01\x12\x16\n\nint32_data\x18\x04 \x03(\x05\x42\x02\x10\x01\x12\x0c\n\x04name\x18\x05 \x01(\t\x12\x0e\n\x06offset\x18\x06 \x01(\x03\x12\x11\n\tdata_size\x18\x07 \x01(\x03\x12\r\n\x05scale\x18\x08 \x03(\x02\x12\x12\n\nzero_point\x18\t \x03(\x05\x12\x0e\n\x06minval\x18\n \x03(\x02\x12\x0e\n\x06maxval\x18\x0b \x03(\x02\x12\x18\n\tquantized\x18\x0c \x01(\x08:\x05\x66\x61lse\x12.\n\x0b\x64\x61ta_format\x18\r \x01(\x0e\x32\x10.mace.DataFormat:\x07\x44T_NCHW\x12\x1f\n\x11\x64o_auto_transpose\x18\x0e \x01(\x08:\x04true\x12\x0f\n\x07node_id\x18\x64 \x01(\r\x12*\n\x08sparsity\x18\x65 \x01(\x0b\x32\x18.mace.SparsityParameters\x12\x17\n\x0fshape_signature\x18\x66 \x03(\x05\"d\n\x08\x41rgument\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\t\n\x01\x66\x18\x02 \x01(\x02\x12\t\n\x01i\x18\x03 \x01(\x03\x12\t\n\x01s\x18\x04 \x01(\x0c\x12\x0e\n\x06\x66loats\x18\x05 \x03(\x02\x12\x0c\n\x04ints\x18\x06 \x03(\x03\x12\x0b\n\x03str\x18\x07 \x01(\t\"1\n\tNodeInput\x12\x0f\n\x07node_id\x18\x01 \x01(\x05\x12\x13\n\x0boutput_port\x18\x02 \x01(\x05\"\x1b\n\x0bOutputShape\x12\x0c\n\x04\x64ims\x18\x01 \x03(\x03\"[\n\x16QuantizeActivationInfo\x12\r\n\x05scale\x18\x01 \x01(\x02\x12\x12\n\nzero_point\x18\x02 \x01(\x05\x12\x0e\n\x06minval\x18\x03 \x01(\x02\x12\x0e\n\x06maxval\x18\x04 \x01(\x02\"\x95\x03\n\x0bOperatorDef\x12\r\n\x05input\x18\x01 \x03(\t\x12\x0e\n\x06output\x18\x02 \x03(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\x12\x0c\n\x04type\x18\x04 \x01(\t\x12\x13\n\x0b\x64\x65vice_type\x18\x05 \x01(\x05\x12\x1b\n\x03\x61rg\x18\x06 \x03(\x0b\x32\x0e.mace.Argument\x12\'\n\x0coutput_shape\x18\x07 \x03(\x0b\x32\x11.mace.OutputShape\x12#\n\x0boutput_type\x18\x08 \x03(\x0e\x32\x0e.mace.DataType\x12\x33\n\rquantize_info\x18\t \x03(\x0b\x32\x1c.mace.QuantizeActivationInfo\x12\x0e\n\x06mem_id\x18\n \x03(\x05\x12\x0f\n\x07node_id\x18\x64 \x01(\r\x12\r\n\x05op_id\x18\x65 \x01(\r\x12\x0f\n\x07padding\x18\x66 \x01(\r\x12#\n\nnode_input\x18g \x03(\x0b\x32\x0f.mace.NodeInput\x12\x19\n\x11out_max_byte_size\x18h \x03(\x05\x12\x15\n\rintermediates\x18i \x03(\x05\"\xbd\x01\n\x0fInputOutputInfo\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07node_id\x18\x02 \x01(\x05\x12\x0c\n\x04\x64ims\x18\x03 \x03(\x05\x12\x15\n\rmax_byte_size\x18\x04 \x01(\x05\x12+\n\tdata_type\x18\x05 \x01(\x0e\x32\x0e.mace.DataType:\x08\x44T_FLOAT\x12\x16\n\x0b\x64\x61ta_format\x18\x06 \x01(\x05:\x01\x31\x12\r\n\x05scale\x18\x07 \x01(\x02\x12\x12\n\nzero_point\x18\x08 \x01(\x05\"(\n\x08Metadata\x12\x0c\n\x04name\x18\x01 \x03(\t\x12\x0e\n\x06\x62uffer\x18\x02 \x03(\r\"/\n\tTensorMap\x12\x0c\n\x04name\x18\x01 \x03(\t\x12\x14\n\x0ctensor_index\x18\x02 \x03(\r\"\x80\x01\n\x0cSignatureDef\x12\x1f\n\x06inputs\x18\x01 \x03(\x0b\x32\x0f.mace.TensorMap\x12 \n\x07outputs\x18\x02 \x03(\x0b\x32\x0f.mace.TensorMap\x12\x15\n\rsignature_key\x18\x03 \x03(\t\x12\x16\n\x0esubgraph_index\x18\x04 \x03(\r\"\xba\x02\n\x06NetDef\x12\x1d\n\x02op\x18\x01 \x03(\x0b\x32\x11.mace.OperatorDef\x12\x1b\n\x03\x61rg\x18\x02 \x03(\x0b\x32\x0e.mace.Argument\x12\"\n\x07tensors\x18\x03 \x03(\x0b\x32\x11.mace.ConstTensor\x12+\n\tdata_type\x18\x04 \x01(\x0e\x32\x0e.mace.DataType:\x08\x44T_FLOAT\x12)\n\ninput_info\x18\x64 \x03(\x0b\x32\x15.mace.InputOutputInfo\x12*\n\x0boutput_info\x18\x65 \x03(\x0b\x32\x15.mace.InputOutputInfo\x12 \n\x08metadata\x18\x66 \x03(\x0b\x32\x0e.mace.Metadata\x12*\n\x0esignature_defs\x18g \x03(\x0b\x32\x12.mace.SignatureDef*\xbd\x01\n\x08\x44\x61taType\x12\x0e\n\nDT_INVALID\x10\x00\x12\x0c\n\x08\x44T_FLOAT\x10\x01\x12\x0c\n\x08\x44T_UINT8\x10\x02\x12\x0b\n\x07\x44T_HALF\x10\x03\x12\x0c\n\x08\x44T_INT32\x10\x04\x12\x0e\n\nDT_FLOAT16\x10\x05\x12\x0b\n\x07\x44T_INT8\x10\x06\x12\x0c\n\x08\x44T_INT16\x10\x07\x12\x0e\n\nDT_FLOAT64\x10\x08\x12\x11\n\rDT_COMPLEX128\x10\t\x12\r\n\tDT_UINT64\x10\n\x12\r\n\tDT_UINT32\x10\x0b*3\n\nDataFormat\x12\x0b\n\x07\x44T_NONE\x10\x00\x12\x0b\n\x07\x44T_NCHW\x10\x01\x12\x0b\n\x07\x44T_NHWC\x10\x02*;\n\nMemoryType\x12\x0e\n\nCPU_BUFFER\x10\x00\x12\x0e\n\nGPU_BUFFER\x10\x01\x12\r\n\tGPU_IMAGE\x10\x02**\n\rDimensionType\x12\t\n\x05\x44\x45NSE\x10\x00\x12\x0e\n\nSPARSE_CSR\x10\x01\x42\x02H\x03')
 )
 
 _DATATYPE = _descriptor.EnumDescriptor(
@@ -53,11 +53,35 @@ _DATATYPE = _descriptor.EnumDescriptor(
       name='DT_FLOAT16', index=5, number=5,
       serialized_options=None,
       type=None),
+    _descriptor.EnumValueDescriptor(
+      name='DT_INT8', index=6, number=6,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='DT_INT16', index=7, number=7,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='DT_FLOAT64', index=8, number=8,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='DT_COMPLEX128', index=9, number=9,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='DT_UINT64', index=10, number=10,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='DT_UINT32', index=11, number=11,
+      serialized_options=None,
+      type=None),
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1439,
-  serialized_end=1536,
+  serialized_start=2456,
+  serialized_end=2645,
 )
 _sym_db.RegisterEnumDescriptor(_DATATYPE)
 
@@ -83,8 +107,8 @@ _DATAFORMAT = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1538,
-  serialized_end=1589,
+  serialized_start=2647,
+  serialized_end=2698,
 )
 _sym_db.RegisterEnumDescriptor(_DATAFORMAT)
 
@@ -110,25 +134,305 @@ _MEMORYTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1591,
-  serialized_end=1650,
+  serialized_start=2700,
+  serialized_end=2759,
 )
 _sym_db.RegisterEnumDescriptor(_MEMORYTYPE)
 
 MemoryType = enum_type_wrapper.EnumTypeWrapper(_MEMORYTYPE)
+_DIMENSIONTYPE = _descriptor.EnumDescriptor(
+  name='DimensionType',
+  full_name='mace.DimensionType',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='DENSE', index=0, number=0,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='SPARSE_CSR', index=1, number=1,
+      serialized_options=None,
+      type=None),
+  ],
+  containing_type=None,
+  serialized_options=None,
+  serialized_start=2761,
+  serialized_end=2803,
+)
+_sym_db.RegisterEnumDescriptor(_DIMENSIONTYPE)
+
+DimensionType = enum_type_wrapper.EnumTypeWrapper(_DIMENSIONTYPE)
 DT_INVALID = 0
 DT_FLOAT = 1
 DT_UINT8 = 2
 DT_HALF = 3
 DT_INT32 = 4
 DT_FLOAT16 = 5
+DT_INT8 = 6
+DT_INT16 = 7
+DT_FLOAT64 = 8
+DT_COMPLEX128 = 9
+DT_UINT64 = 10
+DT_UINT32 = 11
 DT_NONE = 0
 DT_NCHW = 1
 DT_NHWC = 2
 CPU_BUFFER = 0
 GPU_BUFFER = 1
 GPU_IMAGE = 2
+DENSE = 0
+SPARSE_CSR = 1
 
+
+
+_INT32VECTOR = _descriptor.Descriptor(
+  name='Int32Vector',
+  full_name='mace.Int32Vector',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='values', full_name='mace.Int32Vector.values', index=0,
+      number=1, type=5, cpp_type=1, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=31,
+  serialized_end=60,
+)
+
+
+_UINT16VECTOR = _descriptor.Descriptor(
+  name='Uint16Vector',
+  full_name='mace.Uint16Vector',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='values', full_name='mace.Uint16Vector.values', index=0,
+      number=1, type=13, cpp_type=3, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=62,
+  serialized_end=92,
+)
+
+
+_UINT8VECTOR = _descriptor.Descriptor(
+  name='Uint8Vector',
+  full_name='mace.Uint8Vector',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='values', full_name='mace.Uint8Vector.values', index=0,
+      number=1, type=13, cpp_type=3, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=94,
+  serialized_end=123,
+)
+
+
+_SPARSEINDEXVECTOR = _descriptor.Descriptor(
+  name='SparseIndexVector',
+  full_name='mace.SparseIndexVector',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='s32Vector', full_name='mace.SparseIndexVector.s32Vector', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='u16Vector', full_name='mace.SparseIndexVector.u16Vector', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='u8Vector', full_name='mace.SparseIndexVector.u8Vector', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=126,
+  serialized_end=259,
+)
+
+
+_DIMENSIONMETADATA = _descriptor.Descriptor(
+  name='DimensionMetadata',
+  full_name='mace.DimensionMetadata',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='format', full_name='mace.DimensionMetadata.format', index=0,
+      number=1, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='dense_size', full_name='mace.DimensionMetadata.dense_size', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='array_segments', full_name='mace.DimensionMetadata.array_segments', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='array_indices', full_name='mace.DimensionMetadata.array_indices', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='ArrayIndicesVecType', full_name='mace.DimensionMetadata.ArrayIndicesVecType', index=4,
+      number=5, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='ArraySegmentsVecType', full_name='mace.DimensionMetadata.ArraySegmentsVecType', index=5,
+      number=6, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=262,
+  serialized_end=494,
+)
+
+
+_SPARSITYPARAMETERS = _descriptor.Descriptor(
+  name='SparsityParameters',
+  full_name='mace.SparsityParameters',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='traversal_order', full_name='mace.SparsityParameters.traversal_order', index=0,
+      number=1, type=5, cpp_type=1, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='block_map', full_name='mace.SparsityParameters.block_map', index=1,
+      number=2, type=5, cpp_type=1, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='dim_metadata', full_name='mace.SparsityParameters.dim_metadata', index=2,
+      number=3, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=496,
+  serialized_end=607,
+)
 
 
 _CONSTTENSOR = _descriptor.Descriptor(
@@ -189,29 +493,29 @@ _CONSTTENSOR = _descriptor.Descriptor(
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='scale', full_name='mace.ConstTensor.scale', index=7,
-      number=8, type=2, cpp_type=6, label=1,
-      has_default_value=False, default_value=float(0),
+      number=8, type=2, cpp_type=6, label=3,
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='zero_point', full_name='mace.ConstTensor.zero_point', index=8,
-      number=9, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
+      number=9, type=5, cpp_type=1, label=3,
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='minval', full_name='mace.ConstTensor.minval', index=9,
-      number=10, type=2, cpp_type=6, label=1,
-      has_default_value=False, default_value=float(0),
+      number=10, type=2, cpp_type=6, label=3,
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='maxval', full_name='mace.ConstTensor.maxval', index=10,
-      number=11, type=2, cpp_type=6, label=1,
-      has_default_value=False, default_value=float(0),
+      number=11, type=2, cpp_type=6, label=3,
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
@@ -230,9 +534,30 @@ _CONSTTENSOR = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='node_id', full_name='mace.ConstTensor.node_id', index=13,
+      name='do_auto_transpose', full_name='mace.ConstTensor.do_auto_transpose', index=13,
+      number=14, type=8, cpp_type=7, label=1,
+      has_default_value=True, default_value=True,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='node_id', full_name='mace.ConstTensor.node_id', index=14,
       number=100, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='sparsity', full_name='mace.ConstTensor.sparsity', index=15,
+      number=101, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='shape_signature', full_name='mace.ConstTensor.shape_signature', index=16,
+      number=102, type=5, cpp_type=1, label=3,
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
@@ -248,8 +573,8 @@ _CONSTTENSOR = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=32,
-  serialized_end=359,
+  serialized_start=610,
+  serialized_end=1039,
 )
 
 
@@ -302,6 +627,13 @@ _ARGUMENT = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='str', full_name='mace.Argument.str', index=6,
+      number=7, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -314,8 +646,8 @@ _ARGUMENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=361,
-  serialized_end=448,
+  serialized_start=1041,
+  serialized_end=1141,
 )
 
 
@@ -352,8 +684,8 @@ _NODEINPUT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=450,
-  serialized_end=499,
+  serialized_start=1143,
+  serialized_end=1192,
 )
 
 
@@ -383,8 +715,8 @@ _OUTPUTSHAPE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=501,
-  serialized_end=528,
+  serialized_start=1194,
+  serialized_end=1221,
 )
 
 
@@ -435,8 +767,8 @@ _QUANTIZEACTIVATIONINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=530,
-  serialized_end=621,
+  serialized_start=1223,
+  serialized_end=1314,
 )
 
 
@@ -552,6 +884,13 @@ _OPERATORDEF = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='intermediates', full_name='mace.OperatorDef.intermediates', index=15,
+      number=105, type=5, cpp_type=1, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -564,8 +903,8 @@ _OPERATORDEF = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=624,
-  serialized_end=1006,
+  serialized_start=1317,
+  serialized_end=1722,
 )
 
 
@@ -644,8 +983,136 @@ _INPUTOUTPUTINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1009,
-  serialized_end=1198,
+  serialized_start=1725,
+  serialized_end=1914,
+)
+
+
+_METADATA = _descriptor.Descriptor(
+  name='Metadata',
+  full_name='mace.Metadata',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='name', full_name='mace.Metadata.name', index=0,
+      number=1, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='buffer', full_name='mace.Metadata.buffer', index=1,
+      number=2, type=13, cpp_type=3, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1916,
+  serialized_end=1956,
+)
+
+
+_TENSORMAP = _descriptor.Descriptor(
+  name='TensorMap',
+  full_name='mace.TensorMap',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='name', full_name='mace.TensorMap.name', index=0,
+      number=1, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='tensor_index', full_name='mace.TensorMap.tensor_index', index=1,
+      number=2, type=13, cpp_type=3, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1958,
+  serialized_end=2005,
+)
+
+
+_SIGNATUREDEF = _descriptor.Descriptor(
+  name='SignatureDef',
+  full_name='mace.SignatureDef',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='inputs', full_name='mace.SignatureDef.inputs', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='outputs', full_name='mace.SignatureDef.outputs', index=1,
+      number=2, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='signature_key', full_name='mace.SignatureDef.signature_key', index=2,
+      number=3, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='subgraph_index', full_name='mace.SignatureDef.subgraph_index', index=3,
+      number=4, type=13, cpp_type=3, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=2008,
+  serialized_end=2136,
 )
 
 
@@ -698,6 +1165,20 @@ _NETDEF = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='metadata', full_name='mace.NetDef.metadata', index=6,
+      number=102, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='signature_defs', full_name='mace.NetDef.signature_defs', index=7,
+      number=103, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -710,24 +1191,42 @@ _NETDEF = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1201,
-  serialized_end=1437,
+  serialized_start=2139,
+  serialized_end=2453,
 )
 
+_SPARSEINDEXVECTOR.fields_by_name['s32Vector'].message_type = _INT32VECTOR
+_SPARSEINDEXVECTOR.fields_by_name['u16Vector'].message_type = _UINT16VECTOR
+_SPARSEINDEXVECTOR.fields_by_name['u8Vector'].message_type = _UINT8VECTOR
+_DIMENSIONMETADATA.fields_by_name['format'].enum_type = _DIMENSIONTYPE
+_DIMENSIONMETADATA.fields_by_name['array_segments'].message_type = _SPARSEINDEXVECTOR
+_DIMENSIONMETADATA.fields_by_name['array_indices'].message_type = _SPARSEINDEXVECTOR
+_SPARSITYPARAMETERS.fields_by_name['dim_metadata'].message_type = _DIMENSIONMETADATA
 _CONSTTENSOR.fields_by_name['data_type'].enum_type = _DATATYPE
 _CONSTTENSOR.fields_by_name['data_format'].enum_type = _DATAFORMAT
+_CONSTTENSOR.fields_by_name['sparsity'].message_type = _SPARSITYPARAMETERS
 _OPERATORDEF.fields_by_name['arg'].message_type = _ARGUMENT
 _OPERATORDEF.fields_by_name['output_shape'].message_type = _OUTPUTSHAPE
 _OPERATORDEF.fields_by_name['output_type'].enum_type = _DATATYPE
 _OPERATORDEF.fields_by_name['quantize_info'].message_type = _QUANTIZEACTIVATIONINFO
 _OPERATORDEF.fields_by_name['node_input'].message_type = _NODEINPUT
 _INPUTOUTPUTINFO.fields_by_name['data_type'].enum_type = _DATATYPE
+_SIGNATUREDEF.fields_by_name['inputs'].message_type = _TENSORMAP
+_SIGNATUREDEF.fields_by_name['outputs'].message_type = _TENSORMAP
 _NETDEF.fields_by_name['op'].message_type = _OPERATORDEF
 _NETDEF.fields_by_name['arg'].message_type = _ARGUMENT
 _NETDEF.fields_by_name['tensors'].message_type = _CONSTTENSOR
 _NETDEF.fields_by_name['data_type'].enum_type = _DATATYPE
 _NETDEF.fields_by_name['input_info'].message_type = _INPUTOUTPUTINFO
 _NETDEF.fields_by_name['output_info'].message_type = _INPUTOUTPUTINFO
+_NETDEF.fields_by_name['metadata'].message_type = _METADATA
+_NETDEF.fields_by_name['signature_defs'].message_type = _SIGNATUREDEF
+DESCRIPTOR.message_types_by_name['Int32Vector'] = _INT32VECTOR
+DESCRIPTOR.message_types_by_name['Uint16Vector'] = _UINT16VECTOR
+DESCRIPTOR.message_types_by_name['Uint8Vector'] = _UINT8VECTOR
+DESCRIPTOR.message_types_by_name['SparseIndexVector'] = _SPARSEINDEXVECTOR
+DESCRIPTOR.message_types_by_name['DimensionMetadata'] = _DIMENSIONMETADATA
+DESCRIPTOR.message_types_by_name['SparsityParameters'] = _SPARSITYPARAMETERS
 DESCRIPTOR.message_types_by_name['ConstTensor'] = _CONSTTENSOR
 DESCRIPTOR.message_types_by_name['Argument'] = _ARGUMENT
 DESCRIPTOR.message_types_by_name['NodeInput'] = _NODEINPUT
@@ -735,11 +1234,57 @@ DESCRIPTOR.message_types_by_name['OutputShape'] = _OUTPUTSHAPE
 DESCRIPTOR.message_types_by_name['QuantizeActivationInfo'] = _QUANTIZEACTIVATIONINFO
 DESCRIPTOR.message_types_by_name['OperatorDef'] = _OPERATORDEF
 DESCRIPTOR.message_types_by_name['InputOutputInfo'] = _INPUTOUTPUTINFO
+DESCRIPTOR.message_types_by_name['Metadata'] = _METADATA
+DESCRIPTOR.message_types_by_name['TensorMap'] = _TENSORMAP
+DESCRIPTOR.message_types_by_name['SignatureDef'] = _SIGNATUREDEF
 DESCRIPTOR.message_types_by_name['NetDef'] = _NETDEF
 DESCRIPTOR.enum_types_by_name['DataType'] = _DATATYPE
 DESCRIPTOR.enum_types_by_name['DataFormat'] = _DATAFORMAT
 DESCRIPTOR.enum_types_by_name['MemoryType'] = _MEMORYTYPE
+DESCRIPTOR.enum_types_by_name['DimensionType'] = _DIMENSIONTYPE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
+
+Int32Vector = _reflection.GeneratedProtocolMessageType('Int32Vector', (_message.Message,), dict(
+  DESCRIPTOR = _INT32VECTOR,
+  __module__ = 'mace.proto.mace_pb2'
+  # @@protoc_insertion_point(class_scope:mace.Int32Vector)
+  ))
+_sym_db.RegisterMessage(Int32Vector)
+
+Uint16Vector = _reflection.GeneratedProtocolMessageType('Uint16Vector', (_message.Message,), dict(
+  DESCRIPTOR = _UINT16VECTOR,
+  __module__ = 'mace.proto.mace_pb2'
+  # @@protoc_insertion_point(class_scope:mace.Uint16Vector)
+  ))
+_sym_db.RegisterMessage(Uint16Vector)
+
+Uint8Vector = _reflection.GeneratedProtocolMessageType('Uint8Vector', (_message.Message,), dict(
+  DESCRIPTOR = _UINT8VECTOR,
+  __module__ = 'mace.proto.mace_pb2'
+  # @@protoc_insertion_point(class_scope:mace.Uint8Vector)
+  ))
+_sym_db.RegisterMessage(Uint8Vector)
+
+SparseIndexVector = _reflection.GeneratedProtocolMessageType('SparseIndexVector', (_message.Message,), dict(
+  DESCRIPTOR = _SPARSEINDEXVECTOR,
+  __module__ = 'mace.proto.mace_pb2'
+  # @@protoc_insertion_point(class_scope:mace.SparseIndexVector)
+  ))
+_sym_db.RegisterMessage(SparseIndexVector)
+
+DimensionMetadata = _reflection.GeneratedProtocolMessageType('DimensionMetadata', (_message.Message,), dict(
+  DESCRIPTOR = _DIMENSIONMETADATA,
+  __module__ = 'mace.proto.mace_pb2'
+  # @@protoc_insertion_point(class_scope:mace.DimensionMetadata)
+  ))
+_sym_db.RegisterMessage(DimensionMetadata)
+
+SparsityParameters = _reflection.GeneratedProtocolMessageType('SparsityParameters', (_message.Message,), dict(
+  DESCRIPTOR = _SPARSITYPARAMETERS,
+  __module__ = 'mace.proto.mace_pb2'
+  # @@protoc_insertion_point(class_scope:mace.SparsityParameters)
+  ))
+_sym_db.RegisterMessage(SparsityParameters)
 
 ConstTensor = _reflection.GeneratedProtocolMessageType('ConstTensor', (_message.Message,), dict(
   DESCRIPTOR = _CONSTTENSOR,
@@ -789,6 +1334,27 @@ InputOutputInfo = _reflection.GeneratedProtocolMessageType('InputOutputInfo', (_
   # @@protoc_insertion_point(class_scope:mace.InputOutputInfo)
   ))
 _sym_db.RegisterMessage(InputOutputInfo)
+
+Metadata = _reflection.GeneratedProtocolMessageType('Metadata', (_message.Message,), dict(
+  DESCRIPTOR = _METADATA,
+  __module__ = 'mace.proto.mace_pb2'
+  # @@protoc_insertion_point(class_scope:mace.Metadata)
+  ))
+_sym_db.RegisterMessage(Metadata)
+
+TensorMap = _reflection.GeneratedProtocolMessageType('TensorMap', (_message.Message,), dict(
+  DESCRIPTOR = _TENSORMAP,
+  __module__ = 'mace.proto.mace_pb2'
+  # @@protoc_insertion_point(class_scope:mace.TensorMap)
+  ))
+_sym_db.RegisterMessage(TensorMap)
+
+SignatureDef = _reflection.GeneratedProtocolMessageType('SignatureDef', (_message.Message,), dict(
+  DESCRIPTOR = _SIGNATUREDEF,
+  __module__ = 'mace.proto.mace_pb2'
+  # @@protoc_insertion_point(class_scope:mace.SignatureDef)
+  ))
+_sym_db.RegisterMessage(SignatureDef)
 
 NetDef = _reflection.GeneratedProtocolMessageType('NetDef', (_message.Message,), dict(
   DESCRIPTOR = _NETDEF,

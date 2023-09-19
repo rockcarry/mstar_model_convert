@@ -3,16 +3,26 @@
 # namespace: tflite
 
 from third_party.python import flatbuffers
+from third_party.python.flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class SequenceRNNOptions(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsSequenceRNNOptions(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = SequenceRNNOptions()
         x.Init(buf, n + offset)
         return x
+
+    @classmethod
+    def GetRootAsSequenceRNNOptions(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
+    @classmethod
+    def SequenceRNNOptionsBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x53\x49\x4D\x32", size_prefixed=size_prefixed)
 
     # SequenceRNNOptions
     def Init(self, buf, pos):
@@ -32,7 +42,25 @@ class SequenceRNNOptions(object):
             return self._tab.Get(flatbuffers.number_types.Int8Flags, o + self._tab.Pos)
         return 0
 
-def SequenceRNNOptionsStart(builder): builder.StartObject(2)
+    # SequenceRNNOptions
+    def AsymmetricQuantizeInputs(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
+        return False
+
+def SequenceRNNOptionsStart(builder): builder.StartObject(3)
+def Start(builder):
+    return SequenceRNNOptionsStart(builder)
 def SequenceRNNOptionsAddTimeMajor(builder, timeMajor): builder.PrependBoolSlot(0, timeMajor, 0)
+def AddTimeMajor(builder, timeMajor):
+    return SequenceRNNOptionsAddTimeMajor(builder, timeMajor)
 def SequenceRNNOptionsAddFusedActivationFunction(builder, fusedActivationFunction): builder.PrependInt8Slot(1, fusedActivationFunction, 0)
+def AddFusedActivationFunction(builder, fusedActivationFunction):
+    return SequenceRNNOptionsAddFusedActivationFunction(builder, fusedActivationFunction)
+def SequenceRNNOptionsAddAsymmetricQuantizeInputs(builder, asymmetricQuantizeInputs): builder.PrependBoolSlot(2, asymmetricQuantizeInputs, 0)
+def AddAsymmetricQuantizeInputs(builder, asymmetricQuantizeInputs):
+    return SequenceRNNOptionsAddAsymmetricQuantizeInputs(builder, asymmetricQuantizeInputs)
 def SequenceRNNOptionsEnd(builder): return builder.EndObject()
+def End(builder):
+    return SequenceRNNOptionsEnd(builder)

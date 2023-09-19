@@ -33,8 +33,13 @@ from mace.python.tools.converter_tool.base_converter import MaceOp
 from mace.python.tools.converter_tool.base_converter import MaceKeyword
 from mace.python.tools.converter_tool.base_converter import ConverterUtil
 from mace.python.tools.convert_util import mace_check
+from mace.python.tools.convert_util import getIPUVersion
 
+from mace.python.tools.convert_util import *
 from third_party.caffe import caffe_pb2
+from third_party.crypto.vendor_crypto import *
+from io import BytesIO
+
 caffe_group_str = 'group'
 caffe_kernel_h_str = 'kernel_h'
 caffe_kernel_w_str = 'kernel_w'
@@ -172,9 +177,10 @@ class CaffeConverter(base_converter.ConverterInterface):
         'PReLU': ActivationType.PRELU,
         'TanH': ActivationType.TANH,
         'Sigmoid': ActivationType.SIGMOID,
+        'ReLU6': ActivationType.RELU6,
     }
 
-    def __init__(self, option, src_model_file, src_weight_file, rawdata=False):
+    def __init__(self, option, src_model_file, src_weight_file, input_name_format_map,is_decrypt=False):
         self._op_converters = {
             'Input': self.convert_input,
             'DummyData': self.convert_input,
@@ -183,6 +189,7 @@ class CaffeConverter(base_converter.ConverterInterface):
             'Eltwise': self.convert_elementwise,
             'Add': self.convert_add,
             'ReLU': self.convert_activation,
+            'ReLU6': self.convert_activation,
             'TanH': self.convert_activation,
             'Sigmoid': self.convert_activation,
             'PReLU': self.convert_activation,
@@ -235,59 +242,76 @@ class CaffeConverter(base_converter.ConverterInterface):
         self.input_node_array = []
         self._input_name_shape_map = {}
         self.gray_model = 0
-        self._rawdata = rawdata
+        self._input_name_format_map = input_name_format_map
+        self._lstm_num = 0
         for input_node in self._option.input_nodes.values():
             self.input_node_array.append(input_node.name)
         # parse prototxt
-        with open(src_model_file, 'r') as f:
+        if isinstance(src_model_file,str):
+            f =  open(src_model_file, 'r')
             google.protobuf.text_format.Merge(
                 str(f.read()), self._caffe_layers)
-            self.filter_test_layers(self._caffe_layers)
-            if len(self._caffe_layers.input_dim) != 0:
-              tmp = self._caffe_layers.input_dim
-              for i in six.moves.range(len(self._caffe_layers.input)):
-                tmp1 = tmp[4*i:4*(1+i)]
-                if len(tmp1) == 4:
-                  tmp1[0] = 1
-                  if tmp1[1] == 1:
-                   self.gray_model +=1
-                self._input_name_shape_map[self.input_node_array[i]]=tmp1
+        else:
+            if is_decrypt:
+                decrypt_model_buf = decrypt(src_model_file)
+                model_BytesIO = decrypt_model_buf.read()
+                google.protobuf.text_format.Merge(
+                    model_BytesIO, self._caffe_layers)
+            else:
+                google.protobuf.text_format.Merge(
+                    src_model_file.read(), self._caffe_layers)
 
-            elif len(self._caffe_layers.input_shape) != 0:
-                tmp = self._caffe_layers.input_shape
-                for i in six.moves.range(len(tmp)):
-                  dims = self._caffe_layers.input_shape[i].dim
-                  if len(dims) == 4:
-                    dims[0] = 1
-                    if dims[1] == 1:
-                      self.gray_model += 1
-                  self._input_name_shape_map[self.input_node_array[i]]=dims
-            for layer in self._caffe_layers.layer:
-              #for name in self._change_array:
-                #if layer.name == "conv1_1":
-                  self._caffe_net.add_layer(layer)
+        self.filter_test_layers(self._caffe_layers)
+        if len(self._caffe_layers.input_dim) != 0:
+          tmp = self._caffe_layers.input_dim
+          for i in six.moves.range(len(self._caffe_layers.input)):
+            tmp1 = tmp[4*i:4*(1+i)]
+            if len(tmp1) == 4:
+              mace_check(tmp1[0] == 1, "SGS only support N = 1 for 4 dims inputs")
+              if tmp1[1] == 1:
+               self.gray_model +=1
+            self._input_name_shape_map[self.input_node_array[i]]=tmp1
+
+        elif len(self._caffe_layers.input_shape) != 0:
+            tmp = self._caffe_layers.input_shape
+            for i in six.moves.range(len(tmp)):
+              dims = self._caffe_layers.input_shape[i].dim
+              if len(dims) == 4:
+                mace_check(dims[0] == 1, "SGS only support N = 1 for 4 dims inputs")
+                if dims[1] == 1:
+                  self.gray_model += 1
+              self._input_name_shape_map[self.input_node_array[i]]=dims
+        for layer in self._caffe_layers.layer:
+          #for name in self._change_array:
+            #if layer.name == "conv1_1":
+              self._caffe_net.add_layer(layer)
 
         # parse model weight
-        with open(src_weight_file, 'rb') as f:
+        if type(src_weight_file) is str:
+            f = open(src_weight_file, 'rb')
             caffe_weights.ParseFromString(f.read())
-            #add for compitable DEPRECATED parm layers
-            if len(caffe_weights.layer) == 0:
-                layers = caffe_weights.layers
-            else:
-                layers = caffe_weights.layer
-            #self.filter_test_layers(caffe_weights)
-            '''dump to file begin'''
-            '''
-            import sys
-            f = open('caffemodel.txt', 'w')
-            f.write(str(caffe_weights.layer))
-            f.write(str(caffe_weights))
-            f.close()
-            '''
-            '''dump to file end'''
-            for weight in layers:
-              #for name in self._change_array:
-                self._caffe_net.add_blob(weight)
+        else:
+            weight_BytesIO = src_weight_file.read()
+            caffe_weights.ParseFromString(weight_BytesIO)
+
+        #add for compitable DEPRECATED parm layers
+        if len(caffe_weights.layer) == 0:
+            layers = caffe_weights.layers
+        else:
+            layers = caffe_weights.layer
+        #self.filter_test_layers(caffe_weights)
+        '''dump to file begin'''
+        '''
+        import sys
+        f = open('caffemodel.txt', 'w')
+        f.write(str(caffe_weights.layer))
+        f.write(str(caffe_weights))
+        f.close()
+        '''
+        '''dump to file end'''
+        for weight in layers:
+          #for name in self._change_array:
+            self._caffe_net.add_blob(weight)
 
         self._skip_ops = []
 
@@ -391,6 +415,9 @@ class CaffeConverter(base_converter.ConverterInterface):
             stride = [param.stride_h, param.stride_w]
         if param.HasField(caffe_pad_h_str) or param.HasField(caffe_pad_w_str):
             pad = [param.pad_w,param.pad_w,param.pad_h, param.pad_h]
+        if param.HasField(caffe_kernel_h_str) or param.HasField(
+                caffe_kernel_w_str):
+            kernel = [param.kernel_h, param.kernel_w]
 
         strides_arg = op_def.arg.add()
         strides_arg.name = MaceKeyword.mace_strides_str
@@ -398,6 +425,9 @@ class CaffeConverter(base_converter.ConverterInterface):
         padding_arg = op_def.arg.add()
         padding_arg.name = MaceKeyword.mace_padding_values_str
         padding_arg.ints.extend(pad)
+        kernels_arg = op_def.arg.add()
+        kernels_arg.name = MaceKeyword.mace_kernel_str
+        kernels_arg.ints.extend(kernel)
         if op_def.type == MaceOp.Pooling.name:
             # ceil_mode is default
             ceil_mode_arg = op_def.arg.add()
@@ -410,6 +440,7 @@ class CaffeConverter(base_converter.ConverterInterface):
             kernels_arg.name = MaceKeyword.mace_kernel_str
             kernels_arg.ints.extend(kernel)
             if param.HasField('global_pooling'):
+              if param.global_pooling == True:
                 global_pooling_arg = op_def.arg.add()
                 global_pooling_arg.name = MaceKeyword.mace_global_pooling_str
                 global_pooling_arg.i = 1
@@ -426,7 +457,6 @@ class CaffeConverter(base_converter.ConverterInterface):
             group_arg.i = 1
             if param.HasField('group'):
                 group_arg.i = param.group
-
 
     def convert_ops(self):
         layer_names = set()
@@ -461,7 +491,9 @@ class CaffeConverter(base_converter.ConverterInterface):
         param = caffe_op.layer.input_param
         dims = list(param.shape[0].dim)
         if len(dims) == 4:
-          dims[0] = 1
+          mace_check(dims[0] == 1,
+            "SGS only support N = 1 for 4 dims inputs, but input '%s' doesn't\n"
+            % caffe_op.layer.name)
           if dims[1] == 1:
             #dims[1] = 3
             self.gray_model += 1
@@ -502,7 +534,6 @@ class CaffeConverter(base_converter.ConverterInterface):
             op.type = MaceOp.DepthwiseConv2d.name
         else:
             op.type = MaceOp.Conv2D.name
-
         self.add_stride_pad_kernel_arg(param, op)
         # dilation is specific for convolution in caffe
         dilations = [1, 1]
@@ -517,17 +548,17 @@ class CaffeConverter(base_converter.ConverterInterface):
 
         filter_tensor_name = op.name + '_filter'
         filter_data = caffe_op.blobs[0]
-        # for gray pic case
-        if filter_data.shape[1] == 1 and is_depthwise == False and self._rawdata == False:
-           for name in self.input_node_array:
-             if name == op.input[0] and self.gray_model:
-               #self.input_node_shapes_array[0][1] = 3
-               self._input_name_shape_map[name][1] = 3
-               [n,c,h,w] = filter_data.shape
-               dummy = np.zeros((n,2,h,w))
-               filter_data = np.concatenate((filter_data,dummy),axis=1)
-               self.gray_model -= 1
-
+        # gray pic case for I6E and M6
+        if getIPUVersion() == 'I6E' or getIPUVersion() == 'M6':
+          input_name = op.input[0]
+          if filter_data.shape[1] == 1 and is_depthwise == False and (input_name in self.input_node_array):
+            if not ('RAWDATA_S16_NHWC' == self._input_name_format_map[input_name] or \
+              'RAWDATA_F32_NHWC' == self._input_name_format_map[input_name]):
+                   self._input_name_shape_map[input_name][1] = 3
+                   [n,c,h,w] = filter_data.shape
+                   dummy = np.zeros((n,2,h,w))
+                   filter_data = np.concatenate((filter_data,dummy),axis=1)
+                   self.gray_model -= 1
         self.add_tensor(filter_tensor_name, filter_data.shape,
                         mace_pb2.DT_FLOAT, filter_data)
         op.input.extend([filter_tensor_name])
@@ -548,23 +579,34 @@ class CaffeConverter(base_converter.ConverterInterface):
     def convert_deconv2d(self, caffe_op):
         op = self.convert_general_op(caffe_op)
         param = caffe_op.layer.convolution_param
+        is_GroupConv = False
+
+        if param.num_output != None:
+            num_output = param.num_output
+            num_output_arg = op.arg.add()
+            num_output_arg.name = "num_output"
+            num_output_arg.i = num_output
 
         if param.HasField(caffe_group_str) and param.group > 1:
             filter_data = caffe_op.blobs[0]
             print("group = ",param.group)
             print("filter_data.shape = ",filter_data.shape)
-            mace_check(param.group == filter_data.shape[0] and
-                       filter_data.shape[1] == 1,
-                       "Mace do not support group convolution yet")
-            is_depthwise = True
-            caffe_op.blobs[0] = filter_data.reshape(1,
-                                                    filter_data.shape[0],
-                                                    filter_data.shape[2],
-                                                    filter_data.shape[3])
-            group_arg = op.arg.add()
-            group_arg.name = MaceKeyword.mace_group_str
-            group_arg.i = param.group
-            op.type = MaceOp.DepthwiseDeconv2d.name
+            if param.group == filter_data.shape[0] and filter_data.shape[1] == 1:
+                is_depthwise = True
+                caffe_op.blobs[0] = filter_data.reshape(1,
+                                                        filter_data.shape[0],
+                                                        filter_data.shape[2],
+                                                        filter_data.shape[3])
+                group_arg = op.arg.add()
+                group_arg.name = MaceKeyword.mace_group_str
+                group_arg.i = param.group
+                op.type = MaceOp.DepthwiseDeconv2d.name
+            else:
+                is_GroupConv = True
+                group_arg = op.arg.add()
+                group_arg.name = MaceKeyword.mace_group_str
+                group_arg.i = param.group
+                op.type = MaceOp.Deconv2D.name
         else:
             op.type = MaceOp.Deconv2D.name
 
@@ -583,7 +625,10 @@ class CaffeConverter(base_converter.ConverterInterface):
             dilation_arg.ints.extend(dilations)
 
         filter_tensor_name = op.name + '_filter'
-        filter_data = caffe_op.blobs[0].transpose(1,0,2,3)#reverse_dimensions == true
+        if is_GroupConv:
+            filter_data = caffe_op.blobs[0]
+        else:
+            filter_data = caffe_op.blobs[0].transpose(1,0,2,3)#reverse_dimensions == true
         self.add_tensor(filter_tensor_name, filter_data.shape,
                         mace_pb2.DT_FLOAT, filter_data)
         op.input.extend([filter_tensor_name])
@@ -651,10 +696,23 @@ class CaffeConverter(base_converter.ConverterInterface):
         for consumer in self._caffe_net.get_consumers(caffe_op.layer.top[0]):
             if consumer.type == 'Scale':
                 scale_op = consumer
+
+        # moving_average_fraction is used only when use_global_stats==False
+        # As only support use_global_stats==True, param moving_average_fraction not needed
+        param = caffe_op.layer.batch_norm_param
+        if param.HasField('use_global_stats'):
+            mace_check(param.use_global_stats == True,
+                "batchnorm only support use_global_stats==True")
+        if param.HasField('moving_average_fraction'):
+            print("WARNING: Batchnorm no need to set moving_average_fraction as only support use_global_stats==True")
+
+        epsilon_value = 1e-5
+        if param.HasField('eps'):
+            epsilon_value = param.eps
+
         #mace_check(scale_op is not None, "batchnorm is not followed by scale")
         if (scale_op is not None): # batchNorm + scale
           self._skip_ops.append(scale_op)
-          epsilon_value = caffe_op.layer.batch_norm_param.eps
           if caffe_op.blobs[2][0] == 0:
             caffe_op.blobs[2][0] = 1
           mace_check(caffe_op.blobs[2][0] != 0, "batchnorm scalar is zero")
@@ -681,7 +739,6 @@ class CaffeConverter(base_converter.ConverterInterface):
           op.input.extend([name for name in input_names])
           op.output[:] = scale_op.layer.top[:]
         else:
-          epsilon_value = caffe_op.layer.batch_norm_param.eps
           mace_check(caffe_op.blobs[2][0] != 0, "batchnorm scalar is zero")
           mean_value = (1. / caffe_op.blobs[2][0]) * caffe_op.blobs[0]
           var_value = (1. / caffe_op.blobs[2][0]) * caffe_op.blobs[1]
@@ -712,7 +769,15 @@ class CaffeConverter(base_converter.ConverterInterface):
         pooling_type_arg.i = self.pooling_type_mode[param.pool].value
 
     def convert_softmax(self, caffe_op):
-        self.convert_general_op(caffe_op)
+        op = self.convert_general_op(caffe_op)
+        param = caffe_op.layer.softmax_param
+        op.type = MaceOp.Softmax.name
+
+        axis_arg = op.arg.add()
+        axis_arg.name = MaceKeyword.mace_axis_str
+        axis_arg.i = 1
+        if param.HasField('axis'):
+            axis_arg.i = param.axis
 
     def convert_crop(self, caffe_op):
         op = self.convert_general_op(caffe_op)
@@ -724,7 +789,6 @@ class CaffeConverter(base_converter.ConverterInterface):
         axis_arg.i = 2
         if param.HasField('axis'):
             axis_arg.i = param.axis
-        axis_arg.i = 4 + axis_arg.i if axis_arg.i < 0 else axis_arg.i
         offset_arg = op.arg.add()
         offset_arg.name = MaceKeyword.mace_offset_str
         if len(param.offset) > 0:
@@ -761,7 +825,7 @@ class CaffeConverter(base_converter.ConverterInterface):
             if param.HasField('slice_dim'):
                 axis_arg = op.arg.add()
                 axis_arg.name = MaceKeyword.mace_axis_str
-                axis_arg.i = param.axis
+                axis_arg.i = param.slice_dim
             if param.HasField('axis'):
                 axis_arg = op.arg.add()
                 axis_arg.name = MaceKeyword.mace_axis_str
@@ -774,6 +838,9 @@ class CaffeConverter(base_converter.ConverterInterface):
     def convert_split(self, caffe_op):
         op = self.convert_general_op(caffe_op)
         op.type = MaceOp.Split.name
+        numSplits_arg = op.arg.add()
+        numSplits_arg.name = MaceKeyword.mace_num_split_str
+        numSplits_arg.i = len(op.output_shape)
 
     def convert_interp(self, caffe_op):
         op = self.convert_general_op(caffe_op)
@@ -801,9 +868,23 @@ class CaffeConverter(base_converter.ConverterInterface):
             mace_check(list(caffe_op.blobs[0].shape[:2]) == [1, 1],
                        "Do not support 4D weight with shape [1, 1, *, *]")
         '''
-        weight_tensor_name = op.name + '_weight'
-        weight_data = caffe_op.blobs[0].reshape(param.num_output, -1)
         #add by sigmastar
+        axis_arg = op.arg.add()
+        axis_arg.name = MaceKeyword.mace_axis_str
+        axis_arg.i = 1
+        if param.HasField('axis'):
+            axis_arg.i = param.axis
+
+        transpose = False
+        if param.HasField('transpose'):
+            transpose = param.transpose
+
+        weight_tensor_name = op.name + '_weight'
+        if transpose == False:
+            weight_data = caffe_op.blobs[0]
+        else:
+            weight_data = caffe_op.blobs[0].transpose(1,0)
+
         #change FC weight shape to 4D dim
         weight_data.shape = [weight_data.shape[0],weight_data.shape[1],1,1]
         self.add_tensor(weight_tensor_name, weight_data.shape,
@@ -836,65 +917,69 @@ class CaffeConverter(base_converter.ConverterInterface):
             axis_arg.i = param.axis
         axis_arg.i = 4 + axis_arg.i if axis_arg.i < 0 else axis_arg.i
 
-        '''
-        type_arg = op.arg.add()
-        type_arg.name = MaceKeyword.mace_element_type_str
-        type_arg.i = EltwiseType.PROD.value
-        '''
         if len(caffe_op.blobs) != 0:
             scale_tensor_name = scale_op_name + '_scale'
             scale_data = caffe_op.blobs[0]
-            #expend dim to 4 ,bcaus mul input2 must be as same as input1
-            num = 4
-            tmp_shape = [1,1,1,1]
-            for i in six.moves.range(len(scale_data.shape)-1,-1,-1):
-                tmp_shape[num-1] = scale_data.shape[i]
-                num = num - 1
-            self.add_tensor(scale_tensor_name, tmp_shape,
-                            mace_pb2.DT_FLOAT, scale_data,mace_pb2.DT_NHWC)
-            op.input.extend([scale_tensor_name])
+            if len(scale_data.shape) != 4:
+                #expend dim to 4 ,bcaus mul input2 must be as same as input1
+                num = 4
+                tmp_shape = [1,1,1,1]
+                for i in six.moves.range(len(scale_data.shape)-1,-1,-1):
+                    tmp_shape[num-1] = scale_data.shape[i]
+                    num = num - 1
+                shape = [tmp_shape[0],tmp_shape[3],tmp_shape[1],tmp_shape[2]]
+                tmp_shape = tmp_shape if getIPUVersion() == 'I6E' or getIPUVersion() == 'M6' else shape
+                self.add_tensor(scale_tensor_name, tmp_shape,
+                                mace_pb2.DT_FLOAT, scale_data,mace_pb2.DT_NHWC)
+                op.input.extend([scale_tensor_name])
+            else:
+                self.add_tensor(scale_tensor_name, scale_data.shape,
+                                mace_pb2.DT_FLOAT, scale_data,mace_pb2.DT_NCHW)
+                op.input.extend([scale_tensor_name])
 
             if len(caffe_op.blobs) == 2:
                 bias_tensor_name = scale_op_name + '_offset'
                 bias_data = caffe_op.blobs[1]
-            # caffe of old version has 4-dimension bias, so reshape it
-            # to single dimension ???
-                '''
-                self.add_tensor(bias_tensor_name, bias_data.reshape(-1).shape,
-                                mace_pb2.DT_FLOAT,
-                                bias_data)
-                '''
+                # caffe of old version has 4-dimension bias, so reshape it
+                # to single dimension ???
                 #expend dim to 4 bcaus add input2 must be as same as input1
-                num = 4
-                tmp_shape = [1,1,1,1]
-                for i in six.moves.range(len(bias_data.shape)-1,-1,-1):
-                    tmp_shape[num-1] = bias_data.shape[i]
-                    num = num - 1
-                self.add_tensor(bias_tensor_name, tmp_shape,
-                                mace_pb2.DT_FLOAT,
-                                bias_data,mace_pb2.DT_NHWC)
-                op.input.extend([bias_tensor_name])
-                op.type = MaceOp.BatchNorm.name
-                '''
-                biasadd_op = self._mace_net_def.op.add()
-                biasadd_op.name = scale_op_name + '_biasadd'
-                biasadd_op.type = MaceOp.BiasAdd.name
-                biasadd_op.output.extend(op.output)
-                op.output[:] = [op.output[0] + '_prod_output']
-                biasadd_op.input.extend(op.output)
-                biasadd_op.input.extend([op.input[2]])
+                if len(bias_data.shape) != 4:
+                    num = 4
+                    tmp_shape = [1,1,1,1]
+                    for i in six.moves.range(len(bias_data.shape)-1,-1,-1):
+                        tmp_shape[num-1] = bias_data.shape[i]
+                        num = num - 1
+                    shape = [tmp_shape[0],tmp_shape[3],tmp_shape[1],tmp_shape[2]]
+                    tmp_shape = tmp_shape if getIPUVersion() == 'I6E' or getIPUVersion() == 'M6' else shape
+                    self.add_tensor(bias_tensor_name, tmp_shape,
+                                    mace_pb2.DT_FLOAT,
+                                    bias_data,mace_pb2.DT_NHWC)
+                    op.input.extend([bias_tensor_name])
+                    op.type = MaceOp.BatchNorm.name
+                else:
+                    self.add_tensor(bias_tensor_name, bias_data.shape,
+                                    mace_pb2.DT_FLOAT,
+                                    bias_data,mace_pb2.DT_NCHW)
+                    op.input.extend([bias_tensor_name])
+                    op.type = MaceOp.BatchNorm.name
 
-                biasadd_op.output_shape.extend(op.output_shape)
+                # biasadd_op = self._mace_net_def.op.add()
+                # biasadd_op.name = scale_op_name + '_biasadd'
+                # biasadd_op.type = MaceOp.BiasAdd.name
+                # biasadd_op.output.extend(op.output)
+                # op.output[:] = [op.output[0] + '_prod_output']
+                # biasadd_op.input.extend(op.output)
+                # biasadd_op.input.extend([op.input[2]])
+                # biasadd_op.output_shape.extend(op.output_shape)
+                # del op.input[2]
 
-                del op.input[2]
+                # data_type_arg = biasadd_op.arg.add()
+                # data_type_arg.name = 'T'
+                # data_type_arg.i = self._option.data_type
 
-                data_type_arg = biasadd_op.arg.add()
-                data_type_arg.name = 'T'
-                data_type_arg.i = self._option.data_type
+                # ConverterUtil.add_data_format_arg(biasadd_op,
+                #                                   DataFormat.NCHW)
 
-                ConverterUtil.add_data_format_arg(biasadd_op,
-                                                  DataFormat.NCHW)
-            '''
     def convert_channel_shuffle(self, caffe_op):
         op = self.convert_general_op(caffe_op)
         param = caffe_op.layer.shuffle_channel_param
@@ -1180,16 +1265,59 @@ class CaffeConverter(base_converter.ConverterInterface):
                         mace_pb2.DT_FLOAT,
                         bias_data)
         op.input.extend([bias_tensor_name])
+
     def convert_Clip(self, caffe_op):
         op = self.convert_general_op(caffe_op)
         param = caffe_op.layer.clip_param
-        op.type = 'Clip'
+        is_relux = False # (min_value=0,max_value=6)
+        is_clip = False  # (min_value,max_value)
+        is_maximum = False # (min_value,-)
+        is_minimum = False # (-,max_value)
+        default_min = np.finfo(np.float32).min
+        default_max = np.finfo(np.float32).max
+        #op.type = 'Clip'
         if param.HasField('min'):
            min = param.min
-           mace_check( float(min) == 0.0, "only support min is 0")
+           min_value = float(min)
         if param.HasField('max'):
            max = param.max
-           mace_check( float(max) == 6.0, "only support max is 6")
+           max_value = float(max)
+
+        # Classification
+        if min_value == default_min and max_value != default_max:
+            is_minimum = True # (-,max_value)
+        elif min_value != default_min and max_value == default_max:
+            is_maximum = True # (min_value,-)
+        elif min_value != 0 and max_value != 6:
+            is_clip = True  # (min_value,max_value)
+        else:
+            is_relux = True # (min_value=0,max_value=6)
+
+        # elt type
+        if is_minimum:
+            op.type = MaceOp.Eltwise.name
+            type_arg = op.arg.add()
+            type_arg.name = MaceKeyword.mace_element_type_str
+            type_arg.i = 4
+            if node.op_type == OnnxOpType.Clip.name:
+                coeff_arg = op.arg.add()
+                coeff_arg.name = MaceKeyword.mace_coeff_str
+                coeff_arg.floats.extend([min_value, max_value])
+        elif is_maximum:
+            op.type = MaceOp.Eltwise.name
+            type_arg = op.arg.add()
+            type_arg.name = MaceKeyword.mace_element_type_str
+            type_arg.i = 5
+            if node.op_type == OnnxOpType.Clip.name:
+                coeff_arg = op.arg.add()
+                coeff_arg.name = MaceKeyword.mace_coeff_str
+                coeff_arg.floats.extend([min_value, max_value])
+        # clip type
+        elif is_clip or is_relux:
+            op.type = 'Clip'
+            coeff_arg = op.arg.add()
+            coeff_arg.name = MaceKeyword.mace_coeff_str
+            coeff_arg.floats.extend([min_value, max_value])
 
     def convert_Dropout(self, caffe_op):
         op = self.convert_general_op(caffe_op)
@@ -1257,8 +1385,17 @@ class CaffeConverter(base_converter.ConverterInterface):
     def convert_Reverse(self, caffe_op):
      op = self.convert_general_op(caffe_op)
      op.type = "Reverse"
+     param = caffe_op.layer.reverse_param
+     axis_arg = op.arg.add()
+     axis_arg.name = MaceKeyword.mace_axis_str
+     axis_arg.i = 0
+     if param.HasField('axis'):
+         axis_arg.i = param.axis
+
 
     def convert_LSTM(self, caffe_op):
+     folder = './lstm_data'
+     ConverterUtil.mkdir(folder)
      op = self.convert_general_op(caffe_op)
      param = caffe_op.layer.recurrent_param
      op.type = 'LSTM'
@@ -1270,7 +1407,9 @@ class CaffeConverter(base_converter.ConverterInterface):
      weight_data = np.concatenate((weight_data1, weight_data2), axis=1)
      weight_data.shape = [weight_data.shape[0],weight_data.shape[1],1,1]
      bias_data = caffe_op.blobs[1]
-     np.savez("./weight_biase_data", weight = weight_data,bias = bias_data)
+     file_name = folder + '/weight_biase_data#' + str(self._lstm_num)
+     self._lstm_num += 1
+     np.savez(file_name, weight = weight_data,bias = bias_data)
 
     def convert_Threshold(self, caffe_op):
      op = self.convert_general_op(caffe_op)

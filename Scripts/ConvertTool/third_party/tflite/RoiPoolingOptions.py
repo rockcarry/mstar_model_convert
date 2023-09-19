@@ -2,7 +2,7 @@
 
 # namespace: tflite
 
-import flatbuffers
+from third_party.python import flatbuffers
 
 class RoiPoolingOptions(object):
     __slots__ = ['_tab']

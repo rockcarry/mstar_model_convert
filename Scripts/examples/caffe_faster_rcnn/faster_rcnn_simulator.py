@@ -133,7 +133,7 @@ class Net(calibrator_custom.SIM_Simulator):
             if in2_info['dtype'] == np.int16 and in2_info['name'] != 'conv5_3':
                 # Set second model input for Fixed and Offline model
                 ins, zp = in2_info['quantization']
-                in2_data[idx] = np.clip((in2_data[idx] * 0.0625 / ins + zp), -32768, 32767).astype(in2_info['dtype'])
+                in2_data[idx] = np.clip((in2_data[idx] / ins + zp), -32767, 32767).astype(in2_info['dtype'])
                 feature_s16 = np.zeros(in2_info['shape']).astype('int16')
                 feature_s16[..., :in2_data[idx].shape[-1]] = in2_data[idx]
                 self.second_model.set_input(in2_info['index'], feature_s16)

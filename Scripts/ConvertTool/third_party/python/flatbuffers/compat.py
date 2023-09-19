@@ -39,7 +39,7 @@ else:
         binary_types = (str,)
     range_func = xrange
     if PY26 or (PY27 and not PY275):
-        memoryview_type = buffer
+        memoryview_type = memoryview
         struct_bool_decl = "<b"
     else:
         memoryview_type = memoryview

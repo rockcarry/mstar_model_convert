@@ -9,6 +9,22 @@ import json
 import numpy as np
 
 
+def convert_image(img_path, output_img, preprocess_func, norm=True):
+    image = preprocess_func(img_path, norm)
+    img = list(image.flat)
+    img_origin = cv2.imread(img_path, flags=-1)
+    if img_origin is None:
+        hw_str = '{}, {}'.format(image.shape[0], image.shape[0])
+    else:
+        hw_str = '{}, {}'.format(img_origin.shape[0], img_origin.shape[1])
+    with open(output_img, 'w') as f:
+        f.write('Input_shape=%s\n' % hw_str)
+        for num, value in enumerate(img):
+            f.write('{}, '.format(value))
+            if (num + 1) % 16 == 0:
+                f.write('\n')
+
+
 def which_simulator(tool_path, phase):
     if phase == 'Float':
         label_image_path = misc.find_path(tool_path, 'sgs_simulator_float')
@@ -57,9 +73,9 @@ def label_image(image_list, model, label, category, model_name, preprocess_func,
                 for idx, preprocess in enumerate(preprocess_func):
                     out_img = os.path.join(tmp_image_dir, '{}_{}'.format(idx, os.path.basename(im[idx])))
                     if phase == 'Float':
-                        misc.convert_image(im[idx], out_img, preprocess)
+                        convert_image(im[idx], out_img, preprocess)
                     else:
-                        misc.convert_image(im[idx], out_img, preprocess, norm=False)
+                        convert_image(im[idx], out_img, preprocess, norm=False)
                     output_img += out_img
                     if idx < len(preprocess_func) - 1:
                         output_img += ':'
@@ -69,15 +85,15 @@ def label_image(image_list, model, label, category, model_name, preprocess_func,
                         raise ValueError('Got different num of preprocess_methods and images!')
                     output_img = os.path.join('tmp_image', '{}'.format(os.path.basename(im[0])))
                     if phase == 'Float':
-                        misc.convert_image(im[0], output_img, preprocess_func[0])
+                        convert_image(im[0], output_img, preprocess_func[0])
                     else:
-                        misc.convert_image(im[0], output_img, preprocess_func[0], norm=False)
+                        convert_image(im[0], output_img, preprocess_func[0], norm=False)
                 else:
                     output_img = os.path.join(tmp_image_dir, '{}'.format(os.path.basename(im)))
                     if phase == 'Float':
-                        misc.convert_image(im, output_img, preprocess_func[0])
+                        convert_image(im, output_img, preprocess_func[0])
                     else:
-                        misc.convert_image(im, output_img, preprocess_func[0], norm=False)
+                        convert_image(im, output_img, preprocess_func[0], norm=False)
             out_result = os.path.join(output_dir, output_result(category, model, output_img))
             label_cmd = label_image_cmd(label_image_path, output_img, label, model, category, skip_garbage, phase, debug)
             if debug:
@@ -88,7 +104,7 @@ def label_image(image_list, model, label, category, model_name, preprocess_func,
             if not save_in:
                 for out_img in output_img.split(':'):
                     os.remove(out_img)
-            if (draw != '0') and (category == 'Detection'):
+            if (draw is not None) and (category == 'Detection'):
                 colors = random_color()
                 draw_rectangle(im, out_result, project_path, draw, colors)
         else:
@@ -99,7 +115,7 @@ def label_image(image_list, model, label, category, model_name, preprocess_func,
             out_result = os.path.join(output_dir, output_result(category, model, im))
             if not os.path.exists(out_result):
                 raise RuntimeError('Run simulator failed!\nUse command to debug: {}'.format(label_cmd))
-            if (draw != '0') and (category == 'Detection'):
+            if (draw is not None) and (category == 'Detection'):
                 colors = random_color()
                 draw_rectangle(im, out_result, project_path, draw, colors)
     if not save_in:
@@ -118,79 +134,7 @@ def cal_simulator_multi(image_list, label, model, category, model_name, preproce
     if subset_index == 0:
         process_bar = misc.ShowProcess(subset_size[0])
 
-    if num_subsets == subset_index:
-        if category == 'Classification':
-            image_label = dict()
-            with open(label, 'r') as f:
-                lines = f.readlines()
-            for line in lines:
-                label_line = line.strip().split(' ')
-                image_label[label_line[0].strip().split('.')[-2]] = int(label_line[1])
-            count_top1 = 0
-            count_top5 = 0
-            results_list = os.listdir('output')
-            prefix_result = '{}_{}_'.format(category, os.path.basename(model))
-            results_list = [os.path.join('output', i) for i in results_list]
-            for im_file in results_list:
-                with open(im_file, 'r') as f:
-                    results = f.readlines()
-                results_top5 = [int(results[i].strip().split(' ')[0]) for i in range(1, len(results))]
-                im_label = image_label[im_file.split('/')[-1][len(prefix_result): -4].split('.')[-2]]
-                if im_label in results_top5:
-                    count_top5 += 1
-                    if im_label == results_top5[0]:
-                        count_top1 += 1
-            top1_acc = count_top1 / dataset_size
-            top5_acc = count_top5 / dataset_size
-            classify_acc = '\x0A\x0D{} images\x0A\x0Dtop1: {:.2%}\x0A\x0Dtop5: {:.2%}\x0A\x0D'.format(dataset_size, top1_acc, top5_acc)
-            print(classify_acc)
-            classify_txt = '{}_{}_acc.log'.format(os.path.basename(model), dataset_size)
-            with open(classify_txt, 'w') as f:
-                f.write(classify_acc)
-        elif category == 'Detection':
-            merged_results_json = os.path.join('output', 'detection_{}_merge.json'.format(os.path.basename(model).split('.')[0]))
-            results_list = os.listdir('output')
-            prefix_result = '{}_{}_'.format(category, os.path.basename(model))
-            results_list = [os.path.join('output', i) for i in results_list if i.split('.')[-1] == 'txt']
-            with open(merged_results_json, 'w') as fw:
-                fw.write('[')
-                for im_file in results_list:
-                    with open(im_file, 'r') as fr:
-                        lines = fr.readlines()
-                    contents = ''.join(lines)
-                    if im_file == results_list[-1]:
-                        fw.write(contents[:-2])
-                    else:
-                        fw.write(contents)
-                fw.write(']')
-
-            from pycocotools.coco import COCO
-            from pycocotools.cocoeval import COCOeval
-            coco_gt = COCO(label)
-            coco_dt = coco_gt.loadRes(merged_results_json)
-            coco_eval = COCOeval(coco_gt, coco_dt, 'bbox')
-            coco_eval.evaluate()
-            coco_eval.accumulate()
-            coco_eval.summarize()
-            detection_txt = '{}_{}_mAP.log'.format(os.path.basename(model), dataset_size)
-            with open(detection_txt, 'w') as f:
-                f.write('Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = {:.3f}\n'.format(coco_eval.stats[0]))
-                f.write('Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = {:.3f}\n'.format(coco_eval.stats[1]))
-                f.write('Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = {:.3f}\n'.format(coco_eval.stats[2]))
-                f.write('Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = {:.3f}\n'.format(coco_eval.stats[3]))
-                f.write('Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = {:.3f}\n'.format(coco_eval.stats[4]))
-                f.write('Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = {:.3f}\n'.format(coco_eval.stats[5]))
-                f.write('Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = {:.3f}\n'.format(coco_eval.stats[6]))
-                f.write('Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = {:.3f}\n'.format(coco_eval.stats[7]))
-                f.write('Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = {:.3f}\n'.format(coco_eval.stats[8]))
-                f.write('Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = {:.3f}\n'.format(coco_eval.stats[9]))
-                f.write('Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = {:.3f}\n'.format(coco_eval.stats[10]))
-                f.write('Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = {:.3f}\n'.format(coco_eval.stats[11]))
-
-        else:
-            raise ValueError('Not support {} category for evaluate datasets.'.format(category))
-
-    else:
+    if num_subsets != subset_index:
         id_start = 0
         if subset_index > 0:
             for i_, size_ in enumerate(subset_size):
@@ -208,9 +152,9 @@ def cal_simulator_multi(image_list, label, model, category, model_name, preproce
                     for idx, preprocess in enumerate(preprocess_func):
                         out_img = os.path.join('tmp_image', '{}_{}'.format(idx, os.path.basename(im_file[idx])))
                         if phase == 'Float':
-                            misc.convert_image(im_file[idx], out_img, preprocess)
+                            convert_image(im_file[idx], out_img, preprocess)
                         else:
-                            misc.convert_image(im_file[idx], out_img, preprocess, norm=False)
+                            convert_image(im_file[idx], out_img, preprocess, norm=False)
                         output_img += out_img
                         if idx < len(preprocess_func) - 1:
                             output_img += ':'
@@ -220,15 +164,15 @@ def cal_simulator_multi(image_list, label, model, category, model_name, preproce
                             raise ValueError('Got different num of preprocess_methods and images!')
                         output_img = os.path.join('tmp_image', '{}'.format(os.path.basename(im_file[0])))
                         if phase == 'Float':
-                            misc.convert_image(im_file[0], output_img, preprocess_func[0])
+                            convert_image(im_file[0], output_img, preprocess_func[0])
                         else:
-                            misc.convert_image(im_file[0], output_img, preprocess_func[0], norm=False)
+                            convert_image(im_file[0], output_img, preprocess_func[0], norm=False)
                     else:
                         output_img = os.path.join('tmp_image', '{}'.format(os.path.basename(im_file)))
                         if phase == 'Float':
-                            misc.convert_image(im_file, output_img, preprocess_func[0])
+                            convert_image(im_file, output_img, preprocess_func[0])
                         else:
-                            misc.convert_image(im_file, output_img, preprocess_func[0], norm=False)
+                            convert_image(im_file, output_img, preprocess_func[0], norm=False)
                 out_result = os.path.join('output', output_result(category, model, output_img))
                 label_cmd = label_image_cmd(tool_path, output_img, fake_label, model, category, skip_garbage, phase)
                 label_cmd = label_cmd + ' >> {}_simulator.log'.format(model.split('.')[-2].split('/')[-1])
@@ -252,7 +196,7 @@ def cal_simulator_multi(image_list, label, model, category, model_name, preproce
                     raise RuntimeError('Run simulator failed!\nUse command to debug: {}'.format(label_cmd))
 
 def run_simulator(image_list, label, model, category, model_name, preprocess_func, project_path, tool_path,
-                  phase, skip_garbage, continue_run, dataset_size, save_in=False, num_subsets=10):
+                  phase, skip_garbage, continue_run, save_in=False, num_subsets=10):
     output_dir = os.path.join('output')
     if not continue_run:
         misc.renew_folder(output_dir)
@@ -267,9 +211,6 @@ def run_simulator(image_list, label, model, category, model_name, preprocess_fun
                                 'num_subsets': num_subsets, 'subset_index': im_ss})
     p_simulator.close()
     p_simulator.join()
-    if (category != "Unknown"):
-        cal_simulator_multi(image_list, label, model, category, model_name, preprocess_func, project_path, tool_path, label,
-                            skip_garbage, phase, dataset_size, save_in, subset_index=10)
     if not save_in:
         shutil.rmtree(tmp_image_dir)
 

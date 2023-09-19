@@ -35,7 +35,7 @@ def get_image(img_path, resizeH=608, resizeW=608, resizeC=3, norm=True, meanB=0,
 
     if nchw:
         # NCHW
-        img_norm = np.transpose(img_norm.reshape(resizeW, resizeH, -1), axes=(2, 0, 1))
+        img_norm = np.transpose(img_norm, axes=(2, 0, 1))
     return np.expand_dims(img_norm, 0)
 
 def image_preprocess(img_path, norm=True):

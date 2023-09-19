@@ -1,0 +1,48 @@
+﻿SGS_IPU_SDK
+├── bin                                     可执行文件目录
+│   ├── concat_net                          backbone与后处理网络连接工具
+│   ├── convert_tool                        网络优化工具
+│   ├── pack_tool                           转换打包工具
+│   ├── parse_img                           分析离线网络工具
+│   ├── parse_net                           分析定点网络工具
+│   ├── sgs_calibrator                      浮点转定点网络转换工具
+│   ├── sgs_compiler                        定点转离线网络转换工具
+│   ├── sgs_simulator_fixed                 定点、离线网络仿真工具
+│   └── sgs_simulator_float                 浮点网络仿真工具
+├── cfg                                     配置选项文件目录
+│   ├── CompilerConfig.txt                  原网络转换浮点网络配置选项
+│   ├── DebugConfig.txt                     Dump数据、转换定点网络配置选
+│   └── Dev_tool_CompilerConfig.txt         浮点网络转定点网络配置选项
+├── cfg_env.sh                              Libraries输出路径配置
+├── DirectoryDescription.txt                目录说明
+├── DumpDebug                               Dump数据分析工具目录
+│   ├── analysis-one-dump.sh                手动分析数据脚本
+│   ├── auto_dump_debug.sh                  自动分析数据脚本
+│   ├── code                                分析数据相关代码
+│   ├── gen.sh                              生成脚本
+│   ├── histogram.py                        绘制Histogram图脚本
+│   ├── splite_dump                         拆解Dump数据工具
+│   ├── splite_dump_binary                  拆解Dump数据工具
+│   └── splite_dump_struct                  拆解Dump数据工具
+├── libs                                    Libraries目录
+│   ├── x86_32                              32位Libraries目录
+│   └── x86_64                              64位Libraries目录
+├── Netron                                  网络模型查看工具目录
+│   └── Netron Setup 3.4.3.exe              3.4.3版本Windows安装包
+├── ReleaseNote.txt                         ReleaseNote
+└── Scripts                                 Python / bash 脚本文件目录
+    ├── CaffeConvertTool                    Caffe转浮点网络转换工具脚本
+    ├── calibrator                          网络转换、模拟仿真脚本目录
+    │   ├── calibrator.py                   浮点转定点网络转换脚本
+    │   ├── compiler.py                     定点转离线网络转换脚本
+    │   ├── fix2Sgs.bmp                     定点转离线网络图片
+    │   ├── lstm_calibrator.py              LSTM网络浮点转定点网络转换工具脚本
+    │   ├── lstm_simulator.py               LSTM网络仿真工具脚本
+    │   ├── preprocess_method               网络前处理配置脚本
+    │   ├── setup                           Python脚本所需依赖库
+    │   ├── simulator.py                    网络仿真工具脚本
+    │   └── utils                           脚本工具
+    ├── calibrator_custom                   Python模块
+    ├── examples                            calibrator_custom使用实例
+    ├── ConvertTool                         原网络转浮点网络工具目录
+    └── postprocess                         后处理网络生成工具目录

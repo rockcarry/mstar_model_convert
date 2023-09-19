@@ -3,16 +3,26 @@
 # namespace: tflite
 
 from third_party.python import flatbuffers
+from third_party.python.flatbuffers.compat import import_numpy
+np = import_numpy()
 
 class DepthwiseConv2DOptions(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAsDepthwiseConv2DOptions(cls, buf, offset):
+    def GetRootAs(cls, buf, offset=0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = DepthwiseConv2DOptions()
         x.Init(buf, n + offset)
         return x
+
+    @classmethod
+    def GetRootAsDepthwiseConv2DOptions(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
+    @classmethod
+    def DepthwiseConv2DOptionsBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x53\x49\x4D\x32", size_prefixed=size_prefixed)
 
     # DepthwiseConv2DOptions
     def Init(self, buf, pos):
@@ -96,15 +106,41 @@ class DepthwiseConv2DOptions(object):
         return 0
 
 def DepthwiseConv2DOptionsStart(builder): builder.StartObject(11)
+def Start(builder):
+    return DepthwiseConv2DOptionsStart(builder)
 def DepthwiseConv2DOptionsAddPadding(builder, padding): builder.PrependInt8Slot(0, padding, 0)
+def AddPadding(builder, padding):
+    return DepthwiseConv2DOptionsAddPadding(builder, padding)
 def DepthwiseConv2DOptionsAddStrideW(builder, strideW): builder.PrependInt32Slot(1, strideW, 0)
+def AddStrideW(builder, strideW):
+    return DepthwiseConv2DOptionsAddStrideW(builder, strideW)
 def DepthwiseConv2DOptionsAddStrideH(builder, strideH): builder.PrependInt32Slot(2, strideH, 0)
+def AddStrideH(builder, strideH):
+    return DepthwiseConv2DOptionsAddStrideH(builder, strideH)
 def DepthwiseConv2DOptionsAddDepthMultiplier(builder, depthMultiplier): builder.PrependInt32Slot(3, depthMultiplier, 0)
+def AddDepthMultiplier(builder, depthMultiplier):
+    return DepthwiseConv2DOptionsAddDepthMultiplier(builder, depthMultiplier)
 def DepthwiseConv2DOptionsAddFusedActivationFunction(builder, fusedActivationFunction): builder.PrependInt8Slot(4, fusedActivationFunction, 0)
+def AddFusedActivationFunction(builder, fusedActivationFunction):
+    return DepthwiseConv2DOptionsAddFusedActivationFunction(builder, fusedActivationFunction)
 def DepthwiseConv2DOptionsAddDilationWFactor(builder, dilationWFactor): builder.PrependInt32Slot(5, dilationWFactor, 1)
+def AddDilationWFactor(builder, dilationWFactor):
+    return DepthwiseConv2DOptionsAddDilationWFactor(builder, dilationWFactor)
 def DepthwiseConv2DOptionsAddDilationHFactor(builder, dilationHFactor): builder.PrependInt32Slot(6, dilationHFactor, 1)
+def AddDilationHFactor(builder, dilationHFactor):
+    return DepthwiseConv2DOptionsAddDilationHFactor(builder, dilationHFactor)
 def DepthwiseConv2DOptionsAddPaddingLeft(builder, paddingLeft): builder.PrependInt32Slot(7, paddingLeft, 0)
+def AddPaddingLeft(builder, paddingLeft):
+    return DepthwiseConv2DOptionsAddPaddingLeft(builder, paddingLeft)
 def DepthwiseConv2DOptionsAddPaddingRight(builder, paddingRight): builder.PrependInt32Slot(8, paddingRight, 0)
+def AddPaddingRight(builder, paddingRight):
+    return DepthwiseConv2DOptionsAddPaddingRight(builder, paddingRight)
 def DepthwiseConv2DOptionsAddPaddingTop(builder, paddingTop): builder.PrependInt32Slot(9, paddingTop, 0)
+def AddPaddingTop(builder, paddingTop):
+    return DepthwiseConv2DOptionsAddPaddingTop(builder, paddingTop)
 def DepthwiseConv2DOptionsAddPaddingBottom(builder, paddingBottom): builder.PrependInt32Slot(10, paddingBottom, 0)
+def AddPaddingBottom(builder, paddingBottom):
+    return DepthwiseConv2DOptionsAddPaddingBottom(builder, paddingBottom)
 def DepthwiseConv2DOptionsEnd(builder): return builder.EndObject()
+def End(builder):
+    return DepthwiseConv2DOptionsEnd(builder)

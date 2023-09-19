@@ -4,6 +4,11 @@ from third_party import tflite
 from itertools import product as product
 from math import ceil
 import numpy as np
+from mace.python.tools.convert_util import getIPUVersion
+
+MAX_DETECTIONS = 100
+if getIPUVersion() in ['I6DC']:
+    MAX_DETECTIONS = 64
 
 def buildGraph(sgs_builder,model_config):
     """
@@ -240,7 +245,8 @@ def buildGraph(sgs_builder,model_config):
     sgs_builder.buildTensor(model_config["shape"],"unpack2_sub_logistic_tensor")
     unpack2_sub_logistic_out_tensors.append("unpack2_sub_logistic_tensor")
     sgs_builder.buildOperatorCode("SGS_unpack2_sub_logistic",tflite.BuiltinOperator.BuiltinOperator().LOGISTIC)
-    sgs_builder.buildOperator("SGS_unpack2_sub_logistic",unpack2_sub_logistic_in_tensors,unpack2_sub_logistic_out_tensors)
+    sgs_builder.buildOperator("SGS_unpack2_sub_logistic",unpack2_sub_logistic_in_tensors,unpack2_sub_logistic_out_tensors)
+
 
     """=========================================="""
     transpose_in_tensors = []
@@ -630,7 +636,7 @@ def buildGraph(sgs_builder,model_config):
                    (b"output_detection_boxes_index_idx",4,"int"),
                    (b"nms",0,"float"),
                    (b"clip",0,"float"),
-                   (b"max_detections",100,"int"),
+                   (b"max_detections",MAX_DETECTIONS,"int"),
                    (b"max_classes_per_detection",1,"int"),
                    (b"detections_per_class",1,"int"),
                    (b"num_classes",1,"int"),
@@ -639,7 +645,7 @@ def buildGraph(sgs_builder,model_config):
                    (b"num_classes_with_background",1,"int"),
                    (b"nms_score_threshold",0.200000003,"float"),
                    (b"nms_iou_threshold",0.300000012,"float")]
-    options = sgs_builder.createFlexBuffer( sgs_builder.lib, cus_options)
+    options = sgs_builder.createFlexBuffer(cus_options)
     sgs_builder.buildOperator("SGS_nms",nms_in_tensors,nms_out_tensors,None,None,options)
 
     network_out_tensors = []
@@ -652,7 +658,10 @@ def buildGraph(sgs_builder,model_config):
 
     sgs_builder.subgraphs.append( sgs_builder.buildSubGraph(model_config["input"],network_out_tensors,model_config["name"]))
     sgs_builder.model = sgs_builder.createModel(3,sgs_builder.operator_codes,sgs_builder.subgraphs,model_config["name"],sgs_builder.buffers)
-    file_identifier = b'TFL3'
+    if getIPUVersion() == 'M6' or getIPUVersion() == 'I6E':
+        file_identifier = b'TFL3'
+    else:
+        file_identifier = b'SIM2'
     sgs_builder.builder.Finish(sgs_builder.model, file_identifier)
     buf = sgs_builder.builder.Output()
     return buf
@@ -685,7 +694,7 @@ def get_postprocess():
           "input" : ['305','314','323'],
           "input_shape" : [[1,13300,4],[1,13300,2],[1,13300,10]],
           "shape" : [1,13300],
-          "out_shapes" : [[1,100,4],[1,100],[1,100],[1],[1,100],[1,13300,10]],
+          "out_shapes" : [[1,MAX_DETECTIONS,4],[1,MAX_DETECTIONS],[1,MAX_DETECTIONS],[1],[1,MAX_DETECTIONS],[1,13300,10]],
           "input_hw": [360., 640.]}
 
     fda = TFLitePostProcess()
@@ -695,6 +704,7 @@ def get_postprocess():
         f.write(fda_buf)
         f.close()
     print("\nWell Done!" + outfilename  + " generated!\n")
+    return outfilename
 
 def model_postprocess():
     return get_postprocess()

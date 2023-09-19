@@ -14,6 +14,7 @@
 
 
 import collections
+import os
 from enum import Enum
 
 from mace.proto import mace_pb2
@@ -76,6 +77,8 @@ class ActivationType(Enum):
     TANH = 4
     SIGMOID = 5
     LEAKYRELU = 6
+    LOGISTIC = 7
+    RELU6 = 8
 
 
 class EltwiseType(Enum):
@@ -93,6 +96,7 @@ class EltwiseType(Enum):
     FLOOR_DIV = 11
     CLIP = 12
     SIGN = 13
+    RSQRT = 14
 
 
 class ReduceType(Enum):
@@ -117,6 +121,7 @@ class FrameworkType(Enum):
 
 MaceSupportedOps = [
     'Activation',
+    'Abs',
     'AddN',
     'ArgMax',
     'BatchNorm',
@@ -133,11 +138,13 @@ MaceSupportedOps = [
     'DepthwiseDeconv2d',
     'Dequantize',
     'Eltwise',
+    'Erf',
     'ExpandDims',
     'ExtractPooling',
     'Fill',
     'FullyConnected',
     'Gather',
+    'HardSigmoid',
     'Identity',
     'IfDefined',
     'InferConv2dShape',
@@ -145,9 +152,12 @@ MaceSupportedOps = [
     'LocalResponseNorm',
     'LSTMCell',
     'LstmNonlinear',
+    'LogSoftmax',
+    'Log',
     'DynamicLSTM',
     'MatMul',
     'OneHot',
+    'Pack',
     'Pad',
     'PadContext',
     'PNorm',
@@ -162,18 +172,26 @@ MaceSupportedOps = [
     'ResizeBilinear',
     'ResizeNearestNeighbor',
     'Reverse',
+    'Relu6',
     'ScalarMath',
+    'ScatterND',
     'Select',
     'Slice',
     'Splice',
     'Split',
+    'Split_V',
     'Shape',
     'Squeeze',
     'Stack',
+    'Sqrt',
+    'Square',
+    'Rsqrt',
     'Unstack',
     'Unsqueeze',
+    'Upsample',
     'StridedSlice',
     'Softmax',
+    'Softplus',
     'SpaceToBatchND',
     'SpaceToDepth',
     'SqrDiffMean',
@@ -185,6 +203,13 @@ MaceSupportedOps = [
     'Tile',
     'LpNorm',
     'MVNorm',
+    'Where',
+    'Greater',
+    'TransposeConv',
+    'Elu',
+    'Unpack',
+    'BatchMatmul',
+    'InstanceNorm',
 ]
 
 MaceOp = Enum('MaceOp', [(op, op) for op in MaceSupportedOps], type=str)
@@ -192,9 +217,11 @@ MaceOp = Enum('MaceOp', [(op, op) for op in MaceSupportedOps], type=str)
 MaceFixedDataFormatOps = [MaceOp.BatchNorm,
                           MaceOp.BatchToSpaceND,
                           MaceOp.Conv2D,
+                          #MaceOp.Conv3D,
                           MaceOp.Deconv2D,
                           MaceOp.DepthToSpace,
                           MaceOp.DepthwiseConv2d,
+                          #MaceOp.DepthwiseConv3d,
                           MaceOp.DepthwiseDeconv2d,
                           MaceOp.FullyConnected,
                           MaceOp.Pooling,
@@ -305,6 +332,10 @@ class MaceKeyword(object):
     mace_p_str = 'p'
     mace_nor_var_str = 'normalize_variance'
     mace_across_ch_str = 'across_channels'
+    mace_output_type_str = 'output_type'
+    mace_AsymmetricQuantizeInputs_str = 'asymmetric_quantize_inputs'
+    mace_PotScaleInt16_str = 'PotScaleInt16'
+    mace_HalfPixelCenters_str = 'HalfPixelCenters'
 
 
 class TransformerRule(Enum):
@@ -687,4 +718,14 @@ class ConverterUtil(object):
             return FilterFormat.OIHW
         else:
             return None
+
+    @staticmethod
+    def mkdir(path):
+        folder = os.path.exists(path)
+        if not folder:
+            os.makedirs(path)
+            print("---  new folder...  ---")
+            print("---  OK  ---")
+        else:
+            print("---  There is this folder!  ---")
 

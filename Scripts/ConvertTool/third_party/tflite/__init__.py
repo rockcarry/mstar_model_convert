@@ -6,6 +6,7 @@ from third_party.tflite import ArgMinOptions
 from third_party.tflite import BatchToSpaceNDOptions
 from third_party.tflite import BidirectionalSequenceLSTMOptions
 from third_party.tflite import BidirectionalSequenceRNNOptions
+from third_party.tflite import BatchMatMulOptions
 from third_party.tflite import Buffer
 from third_party.tflite import BuiltinOptions
 from third_party.tflite import BuiltinOperator
@@ -15,6 +16,7 @@ from third_party.tflite import CombinerType
 from third_party.tflite import ConcatEmbeddingsOptions
 from third_party.tflite import ConcatenationOptions
 from third_party.tflite import Conv2DOptions
+from third_party.tflite import Conv3DOptions
 from third_party.tflite import CustomOptionsFormat
 from third_party.tflite import DepthwiseConv2DOptions
 from third_party.tflite import DequantizeOptions
@@ -66,6 +68,7 @@ from third_party.tflite import ReshapeOptions
 from third_party.tflite import ResizeBilinearOptions
 from third_party.tflite import ResizeNearestNeighborOptions
 from third_party.tflite import RNNOptions
+
 from third_party.tflite import SelectOptions
 from third_party.tflite import SequenceRNNOptions
 from third_party.tflite import ShapeOptions
@@ -110,4 +113,36 @@ from third_party.tflite import SplitVOptions
 from third_party.tflite import SquaredDifferenceOptions
 from third_party.tflite import UniqueOptions
 from third_party.tflite import WhereOptions
+#update2.7
+from third_party.tflite import HardSwishOptions
+from third_party.tflite import IfOptions
+from third_party.tflite import WhileOptions
+from third_party.tflite import DepthToSpaceOptions
+from third_party.tflite import NonMaxSuppressionV4Options
+from third_party.tflite import NonMaxSuppressionV5Options
+from third_party.tflite import ScatterNdOptions
+from third_party.tflite import SelectV2Options
+from third_party.tflite import DensifyOptions
+from third_party.tflite import SegmentSumOptions
+from third_party.tflite import CumsumOptions
+from third_party.tflite import CallOnceOptions
+from third_party.tflite import BroadcastToOptions
+from third_party.tflite import Rfft2dOptions
+from third_party.tflite import HashtableOptions
+from third_party.tflite import HashtableFindOptions
+from third_party.tflite import HashtableImportOptions
+from third_party.tflite import HashtableSizeOptions
+from third_party.tflite import VarHandleOptions
+from third_party.tflite import ReadVariableOptions
+from third_party.tflite import AssignVariableOptions
+from third_party.tflite import RandomOptions
+from third_party.tflite import SparsityParameters
+from third_party.tflite import DimensionMetadata
+from third_party.tflite import DimensionType
+from third_party.tflite import SparseIndexVector
+from third_party.tflite import Uint8Vector
+from third_party.tflite import Uint16Vector
+from third_party.tflite import Int32Vector
+
+
 

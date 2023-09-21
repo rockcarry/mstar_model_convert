@@ -1,5 +1,0 @@
-numpy=1.16.1
-torch==1.0.0
-future==0.18.3
-scikit-image=0.14.5
-protobuf==3.3.0

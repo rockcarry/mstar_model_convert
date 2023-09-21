@@ -55,8 +55,8 @@ static int load_output_data(char *file, int idx, float **data, int *h, int *w, i
     }
 
     sscanf(pstart, "%d", &dim);
-    pcur  = strstr(pstart, "Alignment shape:[");
-    pcur += strlen("Alignment shape:[");
+    pcur  = strstr(pstart, "Original shape:[");
+    pcur += strlen("Original shape:[");
     if (dim == 3) {
         sscanf(pcur, "%d %d %d", h, w, c);
         if (*h <= 0 || *w <= 0 || *c <= 0) {
@@ -242,16 +242,16 @@ static int ufface_postprocess_proc(int inputw, int inputh, float *priors_list, i
 {
     int  i, n;
     for (i=0,n=0; i<priors_num; i++) {
-        if (tensor_scores[i * 8 + 1] > SCORE_THRESH) {
+        if (tensor_scores[i * 2 + 1] > SCORE_THRESH) {
             static const float CENTER_VARIANCE = 0.1;
             static const float SIZE_VARIANCE   = 0.2;
-            float x_center = tensor_boxes[i * 8 + 0] * CENTER_VARIANCE * priors_list[i * 4 + 2] + priors_list[i * 4 + 0];
-            float y_center = tensor_boxes[i * 8 + 1] * CENTER_VARIANCE * priors_list[i * 4 + 3] + priors_list[i * 4 + 1];
-            float w = exp(tensor_boxes[i * 8 + 2] * SIZE_VARIANCE) * priors_list[i * 4 + 2];
-            float h = exp(tensor_boxes[i * 8 + 3] * SIZE_VARIANCE) * priors_list[i * 4 + 3];
+            float x_center = tensor_boxes[i * 4 + 0] * CENTER_VARIANCE * priors_list[i * 4 + 2] + priors_list[i * 4 + 0];
+            float y_center = tensor_boxes[i * 4 + 1] * CENTER_VARIANCE * priors_list[i * 4 + 3] + priors_list[i * 4 + 1];
+            float w = exp(tensor_boxes[i * 4 + 2] * SIZE_VARIANCE) * priors_list[i * 4 + 2];
+            float h = exp(tensor_boxes[i * 4 + 3] * SIZE_VARIANCE) * priors_list[i * 4 + 3];
             if (n < bboxmaxnum) {
                 bboxlist[n].type  = 0;
-                bboxlist[n].score = tensor_scores[i * 8 + 1];
+                bboxlist[n].score = tensor_scores[i * 2 + 1];
                 bboxlist[n].x1    = CLIP(x_center - w / 2.0, 1) * inputw;
                 bboxlist[n].y1    = CLIP(y_center - h / 2.0, 1) * inputh;
                 bboxlist[n].x2    = CLIP(x_center + w / 2.0, 1) * inputw;

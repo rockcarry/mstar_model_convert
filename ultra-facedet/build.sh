@@ -3,7 +3,7 @@
 set -e
 
 echo "convert yolo-fastest from caffe to sgs float ..."
-python3 $SGS_IPU_DIR/Scripts/ConvertTool/ConvertTool.py caffe \
+python3.7 $SGS_IPU_DIR/Scripts/ConvertTool/ConvertTool.py caffe \
 --model_file  $PWD/RFB-320.prototxt   \
 --weight_file $PWD/RFB-320.caffemodel \
 --input_arrays  input \
@@ -12,7 +12,7 @@ python3 $SGS_IPU_DIR/Scripts/ConvertTool/ConvertTool.py caffe \
 --output_file  $PWD/RFB-320-float.sim
 
 echo "convert yolo-fastest from sgs float to sgs fixed ..."
-python3 $SGS_IPU_DIR/Scripts/calibrator/calibrator.py \
+python3.7 $SGS_IPU_DIR/Scripts/calibrator/calibrator.py \
 -i $SGS_IPU_DIR/images \
 -m $PWD/RFB-320-float.sim \
 -o $PWD/RFB-320-fixed.sim \
@@ -22,13 +22,13 @@ python3 $SGS_IPU_DIR/Scripts/calibrator/calibrator.py \
 --input_config $PWD/input_config.ini
 
 echo "convert yolo-fastest from sgs fixed to sgs offline ..."
-python3 $SGS_IPU_DIR/Scripts/calibrator/compiler.py \
+python3.7 $SGS_IPU_DIR/Scripts/calibrator/compiler.py \
 -m $PWD/RFB-320-fixed.sim   \
 -o $PWD/RFB-320-offline.sim \
 -c Unknown
 
 echo "simulator run sgs offline model ..."
-python3 $SGS_IPU_DIR/Scripts/calibrator/simulator.py \
+python3.7 $SGS_IPU_DIR/Scripts/calibrator/simulator.py \
 -i $PWD/test.jpg \
 -m $PWD/RFB-320-offline.sim \
 -c Unknown \

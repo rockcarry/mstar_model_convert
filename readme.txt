@@ -140,7 +140,7 @@ docker run -it --rm -u $(id -u):$(id -g) \
 -v /etc/passwd:/etc/passwd:ro \
 -v /etc/group:/etc/group:ro   \
 -v /etc/shadow:/etc/shadow:ro \
-apical/aicnn-dev:v1.0.0 bash
+apical/aicnn-dev:v1.1.0 bash
 
 
 

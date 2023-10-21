@@ -2,7 +2,7 @@
 
 set -e
 
-echo "convert yolo-fastest from caffe to sgs float ..."
+echo "convert ultra-facedet from caffe to sgs float ..."
 python3.7 $SGS_IPU_DIR/Scripts/ConvertTool/ConvertTool.py caffe \
 --model_file  $PWD/RFB-320.prototxt   \
 --weight_file $PWD/RFB-320.caffemodel \
@@ -11,7 +11,7 @@ python3.7 $SGS_IPU_DIR/Scripts/ConvertTool/ConvertTool.py caffe \
 --input_config $PWD/input_config.ini \
 --output_file  $PWD/RFB-320-float.sim
 
-echo "convert yolo-fastest from sgs float to sgs fixed ..."
+echo "convert ultra-facedet from sgs float to sgs fixed ..."
 python3.7 $SGS_IPU_DIR/Scripts/calibrator/calibrator.py \
 -i $SGS_IPU_DIR/images \
 -m $PWD/RFB-320-float.sim \
@@ -21,7 +21,7 @@ python3.7 $SGS_IPU_DIR/Scripts/calibrator/calibrator.py \
 --quant_level L3 \
 --input_config $PWD/input_config.ini
 
-echo "convert yolo-fastest from sgs fixed to sgs offline ..."
+echo "convert ultra-facedet from sgs fixed to sgs offline ..."
 python3.7 $SGS_IPU_DIR/Scripts/calibrator/compiler.py \
 -m $PWD/RFB-320-fixed.sim   \
 -o $PWD/RFB-320-offline.sim \
